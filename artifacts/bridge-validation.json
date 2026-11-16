@@ -1,0 +1,12 @@
+{
+  "createdAt": "2026-11-16T07:53:02.235Z",
+  "checks": [
+    "dedicated channel handshake and default audio gate",
+    "semantic events and state reach adapter; game cannot dispose host audio",
+    "stale revision and wrong capability are ignored",
+    "inline game client is self-contained and owns no audio or network loader",
+    "dispose closes bridge and prevents reconnect",
+    "missing game handshake times out without blocking host"
+  ],
+  "pass": true
+}

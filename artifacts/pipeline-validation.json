@@ -1,0 +1,71 @@
+{
+  "createdAt": "2026-11-16T07:53:02.112Z",
+  "script": "scripts/check-pipeline.mjs",
+  "purpose": "Shared game/audio generation input, deterministic plan, version join, semantic event adapter and failure isolation integration checks.",
+  "caveat": "Game generation is simulated by a small independent task. Runtime calls are mocked; no PCM is rendered and no subjective quality is inferred.",
+  "checks": [
+    "canonical SHA-256 matches Node crypto",
+    "same normalized shared input gives identical plan",
+    "seed changes plan",
+    "extra shared world metadata affects brief hash",
+    "local director is labeled honestly",
+    "canonical cue reuse is allowed",
+    "profile event aliases never leak into explicit bindings",
+    "duplicate semantic events rejected",
+    "required mappings enforced",
+    "unknown cue aliases rejected",
+    "rate/revision/seed bounds validated",
+    "conflicting brief/contract versions rejected",
+    "injected director output is validated",
+    "game becomes ready while audio generation waits",
+    "independent game/audio tasks join by exact shared version",
+    "stale revision cannot join",
+    "contract version and binding changes invalidate join",
+    "failed audio generation does not block game generation",
+    "adapter constructs no context and never autoplays",
+    "explicit unlock/start gates playback",
+    "rendered score identity/compiler/content is checked",
+    "unknown and unmapped events never fall back to beeps",
+    "payload finite ranges and stale event versions checked",
+    "3D positioning is not falsely claimed",
+    "semantic event maps to the exact canonical cue",
+    "per-event frequency and concurrent rate reservations enforced",
+    "shared cue events keep independent rate limits",
+    "runtime voice-budget rejection is preserved",
+    "failed sound attempts do not consume event cooldown",
+    "audio failure and broken error observer cannot break a game callback",
+    "music initialization failure is isolated",
+    "explicit scene/intensity controls",
+    "pause/resume/stop/dispose lifecycle",
+    "stop cancels pending package start",
+    "browser unlock failure remains explicit and locked",
+    "unsupported plan version is safely disabled",
+    "serializable AudioPackage honestly remains source-only",
+    "runtime source paths exist on disk",
+    "no fictitious audio files or asset digests"
+  ],
+  "pass": true,
+  "identity": {
+    "projectId": "pipeline-integration-check",
+    "revision": 3,
+    "briefHash": "b51a1f90cdf80a0a0c53acd45252b467270f7b8f4661240c1e38b81f6eb307d6",
+    "contractVersion": 2,
+    "contractHash": "f7ceb6aade0e9cdbbb7646e9c2fdeac3b1cc4edc5e12519cfafd40ef6be62923"
+  },
+  "plan": {
+    "planId": "audio-plan-a3789ac4bf09d8c1fdf16fcca8a369318bcc87c3dc897919540a002a13371d7d",
+    "scoreHash": "f16efc26911b33a99e4d8a64233dae9f296655eb8a43d524d2e0589b867b7101",
+    "compilerVersion": "game-audio-pipeline-v1",
+    "soundBankVersion": "prepared-research-bank-2026-11-16-v1",
+    "bindingCount": 4,
+    "unmappedOptionalEvents": [
+      "quest.optional"
+    ],
+    "mediaStatus": "not-rendered"
+  },
+  "gameState": {
+    "initialGameScore": 1,
+    "afterAudioFailureGameScore": 2,
+    "independentGameSurvivedAudioGenerationFailure": true
+  }
+}

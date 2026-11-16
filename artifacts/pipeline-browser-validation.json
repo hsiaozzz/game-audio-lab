@@ -1,0 +1,132 @@
+{
+  "createdAt": "2026-11-16T07:52:18.825Z",
+  "checks": {
+    "gameReadyWhileAudioBusy": true,
+    "sandboxOpaque": true,
+    "gameDisallowsNetwork": true,
+    "gameActionWorksBeforeAudio": true,
+    "realThreeStems": true,
+    "userGestureUnlock": true,
+    "threePlayingStems": true,
+    "realAudioOutput": true,
+    "gameEventsReachAudio": true,
+    "staleEventRejected": true,
+    "pauseGatesGameAudio": true,
+    "resumeRestoresGameAudio": true,
+    "audioFailureKeepsGamePlayable": true,
+    "mismatchedAudioPlanRefused": true,
+    "mobileHasNoPageOverflow": true
+  },
+  "renderStats": {
+    "sampleRate": 44100,
+    "channels": 2,
+    "durationSeconds": 33.10344671201814,
+    "pcmBytes": 11678896,
+    "peak": 0.8912509083747864,
+    "peakDbFS": -1.0000002900227403,
+    "rms": 0.08538624413245745,
+    "rmsDbFS": -21.372241784945953,
+    "nonfinite": 0,
+    "clippedSamples": 0,
+    "loopBoundaryJump": 0.00028670765459537506,
+    "renderMs": 23048.30000001192,
+    "mode": "hybrid",
+    "instrumentSource": "synthesis",
+    "normalizationGainDb": 8.968242196898345,
+    "trackCount": 6,
+    "eventCount": 544,
+    "stemCount": 3,
+    "offlineStemCount": 3,
+    "skippedSilentStems": [],
+    "totalCachedPcmBytes": 46715584,
+    "method": "Tone.Offline, two cycles per nonempty stem, retained second cycle; silent stems allocated directly",
+    "toneVersion": "15.1.22"
+  },
+  "timing": {
+    "game": "0.02 s",
+    "audio": "23.07 s"
+  },
+  "foregroundEmulation": "Enabled for cross-process iframe input; earlier automation produced a brief hidden/visible transition.",
+  "acceptedBefore": 3,
+  "beforePause": {
+    "revision": 1,
+    "busy": false,
+    "startPending": false,
+    "disposed": false,
+    "audioStarted": true,
+    "audioPaused": false,
+    "counts": {
+      "collect": 3,
+      "hit": 2,
+      "accepted": 5
+    },
+    "planId": "audio-plan-4720e26d5be351663fd0bff6cd0f3fd4d67570cda6be5549180e2ff509b9ca73",
+    "briefHash": "220d53411c3c28269d31abf1674f6602a8d15551e0a6f042ef5785378f7d0d26",
+    "stems": [
+      "core",
+      "texture",
+      "rhythm"
+    ],
+    "adapter": {
+      "status": "playing",
+      "disposed": false,
+      "unlocked": true,
+      "scene": "exploration",
+      "intensity": 0.35,
+      "acceptedEvents": 5,
+      "lastError": {
+        "accepted": false,
+        "reason": "not-playing"
+      },
+      "identity": {
+        "projectId": "pipeline-demo",
+        "revision": 1,
+        "briefHash": "220d53411c3c28269d31abf1674f6602a8d15551e0a6f042ef5785378f7d0d26",
+        "contractVersion": 1,
+        "contractHash": "1f9352bb84e87959ca68e5177388ee614368c98754a95423478971567caca4ae"
+      },
+      "planId": "audio-plan-4720e26d5be351663fd0bff6cd0f3fd4d67570cda6be5549180e2ff509b9ca73",
+      "runtime": {
+        "contextState": "running",
+        "disposed": false,
+        "playing": true,
+        "paused": false,
+        "intensity": 0.35,
+        "muted": false,
+        "position": 0.48366666666666447,
+        "totalEvents": 5,
+        "activeSources": 3,
+        "retiringSources": 0,
+        "stemLevels": {
+          "core": 0.8676022291183472,
+          "texture": 0.5567114949226379,
+          "rhythm": 0.41259291768074036
+        },
+        "voiceCount": 3,
+        "retainedVoiceCount": 3,
+        "baseLatency": 0.01,
+        "outputLatency": 0.032,
+        "intensityAt": 189.38133333333334
+      }
+    },
+    "bridge": {
+      "connected": true,
+      "enabled": true,
+      "disposed": false,
+      "eventCount": 2,
+      "rejectedCount": 3
+    }
+  },
+  "pass": true,
+  "mobile": {
+    "width": 390,
+    "documentWidth": 390,
+    "overflow": false
+  },
+  "sourceHashes": {
+    "src/audio-engine.mjs": "14039df2c276e9b1bd996b02cd97c7260953e135a8a0b6f1b10ac4319e816916",
+    "src/game-audio-pipeline.mjs": "6094d025f3557390367888d678cdff9168ebd115778cc78a365ec1b5883bf736",
+    "src/game-audio-bridge.mjs": "ad0da54d9bc1ba4b07be0b4e5935812a178d683572a7ecb29284ce5fadd6b3d4",
+    "src/pipeline-demo.mjs": "769f0ae8309ca5417717b18a2afa10f46c6156c2cdfc406c525dde866d462693"
+  }
+}

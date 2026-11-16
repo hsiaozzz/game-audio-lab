@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11152b">
+  <title>Game Audio Lab · 游戏声音编排实验室</title>
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="masthead">
+      <a class="brand" href="/" aria-label="Game Audio Lab 首页"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><span>GAME AUDIO <b>LAB</b></span></a>
+      <a class="small-pill" href="/listen.html">无需渲染，直接试听成品 ↗</a>
+      <div class="edition"><span class="status-dot"></span> INDEPENDENT RESEARCH / 001</div>
+    </header>
+    <section class="intro">
+      <div><p class="eyebrow">FROM A GAME IDEA, TO ITS SOUND.</p><h1>让游戏，<span>有自己的声音。</span></h1><p class="intro-copy">从游戏描述出发，探索主题配乐、声音设计与玩法事件之间的连接。</p></div>
+      <div class="research-tag"><span>01</span><p>交互研究原型<br><b>Web Audio · 乐谱编排 · 事件绑定</b></p></div>
+    </section>
+    <main class="workspace">
+      <section class="panel composer-panel" aria-labelledby="brief-heading">
+        <div class="panel-heading"><div><span class="step-label">01 / GAME BRIEF</span><h2 id="brief-heading">描述你的游戏</h2></div><span class="small-pill">本地编排原型</span></div>
+        <label class="sr-only" for="prompt">游戏提示词</label>
+        <textarea id="prompt" data-testid="prompt" spellcheck="false" placeholder="例如：做一个温暖的海岛钓鱼游戏，有海浪、抛竿、鱼咬钩和收获奖励……"></textarea>
+        <div id="examples" class="examples" aria-label="示例游戏提示词"></div>
+        <div class="mode-row"><span class="field-label">音源方案</span><div class="segmented" role="group" aria-label="音源方案"><button class="active" type="button" data-mode="hybrid">混合音色</button><button type="button" data-mode="synth">纯合成</button></div></div>
+        <button id="generate" class="primary-button" data-testid="generate"><span class="spark">✧</span> 编排并渲染声音包 <span class="arrow">↗</span></button>
+        <div id="render-status" class="render-status" role="status" aria-live="polite"><span class="status-dot"></span><span id="status-text">选择一个游戏创意，开始声音实验。</span></div>
+        <div id="progress" class="progress" hidden><i></i></div>
+        <div class="scope-note"><span>i</span><p>目前验证海岛休闲、霓虹动作、遗迹探索三种编排风格。首次离线渲染可能需要数十秒。提示词由本地规则解析；此原型尚未接入通用 AI 服务。</p></div>
+        <div class="score-info"><div class="section-label"><span>DIRECTOR'S NOTES</span><span id="score-style">等待编排</span></div><h3 id="score-title">每个世界，都值得一段主题。</h3><p id="score-description">音乐段落、音色与玩法事件，将从同一份游戏描述中组织起来。</p><div id="score-tags" class="score-tags"><span>主题与变奏</span><span>分层音效</span><span>动态强度</span></div><div id="bindings" class="bindings" hidden></div></div>
+      </section>
+      <section class="right-column">
+        <section class="panel soundstage-panel" aria-labelledby="stage-heading">
+          <div class="panel-heading"><div><span class="step-label">02 / SOUND IN CONTEXT</span><h2 id="stage-heading">在游戏里，听见它。</h2></div><span id="stage-status" class="live-label"><i></i> 固定演示场景</span></div>
+          <div class="scene-wrap"><canvas id="game-scene" width="720" height="360" tabindex="0" aria-label="声音事件沙盘，使用 WASD 移动，点击场景触发收集"></canvas><div class="scene-caption"><span id="scene-theme">ISLAND / DAYLIGHT</span><span>WASD 移动 · 点击触发收集</span></div><div id="event-toast" class="event-toast" aria-live="polite">探索声音与动作的关系</div></div>
+          <div class="intensity-row"><div><span class="field-label">场景强度</span><small>由平静探索，到高能时刻</small></div><input id="intensity" data-testid="intensity" type="range" min="0" max="1" step="0.05" value="0.5" aria-label="场景强度"><output id="intensity-value">50%</output></div>
+          <div class="event-section"><div class="section-label"><span>PLAY AN EVENT</span><span id="event-counter">0 次触发</span></div><div id="event-buttons" class="event-buttons"></div></div>
+        </section>
+        <section class="panel music-panel" aria-labelledby="music-heading">
+          <div class="panel-heading"><div><span class="step-label">03 / THE ARRANGEMENT</span><h2 id="music-heading">一段有层次的配乐</h2></div><button id="download" class="text-button" disabled>导出 WAV ↓</button></div>
+          <div class="transport"><button id="play" class="play-button" data-testid="play" disabled aria-label="播放配乐">▶</button><div class="transport-copy"><strong id="track-name">配乐尚未渲染</strong><span id="track-subtitle">编排完成后可试听与导出</span></div><button id="pause" class="transport-button" data-testid="pause" disabled>暂停</button><button id="stop" class="transport-button" data-testid="stop" disabled>停止</button><button id="mute" class="transport-button" data-testid="mute" aria-pressed="false">静音</button></div>
+          <canvas id="waveform" width="720" height="72" aria-label="配乐实际 PCM 波形"></canvas>
+          <div class="timeline-label"><span>音轨 / 实际音符密度</span><span id="bar-count">16 BARS</span></div><div id="track-list" class="track-list"><div class="empty-tracks">主题、和声、低音与节奏将在这里展开。</div></div>
+          <div class="metrics"><div><span>配乐长度</span><strong id="metric-duration">—</strong></div><div><span>乐谱事件</span><strong id="metric-notes">—</strong></div><div><span>渲染耗时</span><strong id="metric-render">—</strong></div><div><span>采样率</span><strong id="metric-rate">44.1k</strong></div></div>
+        </section>
+      </section>
+    </main>
+    <footer><span>GAME AUDIO LAB / 提示词 → 乐谱与音效 → 游戏事件</span><span>研究演示，音质需结合实际试听评价。</span></footer>
+  </div>
+  <script src="/vendor/Tone.js"></script>
+  <script type="module" src="/src/app.mjs"></script>
+</body>
+</html>

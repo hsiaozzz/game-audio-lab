@@ -1,0 +1,105 @@
+{
+  "createdAt": "2026-11-16T08:04:40.931Z",
+  "sourceHashes": {
+    "src/audio-engine.mjs": "14039df2c276e9b1bd996b02cd97c7260953e135a8a0b6f1b10ac4319e816916",
+    "src/game-audio-pipeline.mjs": "6094d025f3557390367888d678cdff9168ebd115778cc78a365ec1b5883bf736",
+    "src/game-audio-bridge.mjs": "ad0da54d9bc1ba4b07be0b4e5935812a178d683572a7ecb29284ce5fadd6b3d4",
+    "src/pipeline-demo.mjs": "769f0ae8309ca5417717b18a2afa10f46c6156c2cdfc406c525dde866d462693",
+    "scripts/server.mjs": "8e2b09605fffb202f2d9307555d2e783dfa60665ef61eb39eec320b9e2bf21e3",
+    "scripts/blind-api.mjs": "3a43d72d393f58421bde411ad9a1a20eebe283a5ae0b552ff392c7344c62af37",
+    "src/blind-ui.mjs": "3ab02b452e294727bc271e77e7861ea409a1c8c0461c72388dc2aa0fde1b37c2",
+    "blind.html": "3bd284e0a3ab2b591c69583d0657824d72cc3b5f589b81feb3232e103d339878"
+  },
+  "technicalChecks": {
+    "audio-engine-validation": {
+      "pass": true,
+      "report": "artifacts/audio-engine-validation.json",
+      "sha256": "f57b2518980aaf6bf903021150022c48b104d610fd9ab284216c7c586b513b6d",
+      "verifiedSourceHashes": {
+        "src/audio-engine.mjs": "14039df2c276e9b1bd996b02cd97c7260953e135a8a0b6f1b10ac4319e816916"
+      }
+    },
+    "pipeline-validation": {
+      "pass": true,
+      "report": "artifacts/pipeline-validation.json",
+      "sha256": "c6c3bbed5835991cd5a660915bfbae61b226040e3815176a2cb2cd1e3d1335de",
+      "verifiedSourceHashes": {}
+    },
+    "bridge-validation": {
+      "pass": true,
+      "report": "artifacts/bridge-validation.json",
+      "sha256": "57e4fd8d33747215566c403fdc9d1a8e7c9e137382e46a9d2b3a95fda78fda83",
+      "verifiedSourceHashes": {}
+    },
+    "pipeline-browser-validation": {
+      "pass": true,
+      "report": "artifacts/pipeline-browser-validation.json",
+      "sha256": "bc652e1dc77f68177fab3c0303182e7adf750ab4ee85e4dc65c3b4b371915f24",
+      "verifiedSourceHashes": {
+        "src/audio-engine.mjs": "14039df2c276e9b1bd996b02cd97c7260953e135a8a0b6f1b10ac4319e816916",
+        "src/game-audio-pipeline.mjs": "6094d025f3557390367888d678cdff9168ebd115778cc78a365ec1b5883bf736",
+        "src/game-audio-bridge.mjs": "ad0da54d9bc1ba4b07be0b4e5935812a178d683572a7ecb29284ce5fadd6b3d4",
+        "src/pipeline-demo.mjs": "769f0ae8309ca5417717b18a2afa10f46c6156c2cdfc406c525dde866d462693"
+      }
+    },
+    "release-ui-validation": {
+      "pass": true,
+      "report": "artifacts/release-ui-validation.json",
+      "sha256": "147b5df4b1b8db30d6fce2b6060ca2106e62ceb623099986965e4a1fc5108e96",
+      "verifiedSourceHashes": {
+        "src/blind-ui.mjs": "3ab02b452e294727bc271e77e7861ea409a1c8c0461c72388dc2aa0fde1b37c2",
+        "blind.html": "3bd284e0a3ab2b591c69583d0657824d72cc3b5f589b81feb3232e103d339878"
+      }
+    },
+    "server-validation": {
+      "pass": true,
+      "report": "artifacts/server-validation.json",
+      "sha256": "be03327547b76e79e1801238867f2d03b4b6a7f4fe3b68f2650a9b22756e3ab2",
+      "verifiedSourceHashes": {}
+    }
+  },
+  "historicalReports": [
+    {
+      "report": "artifacts/render-suite.json",
+      "sha256": "5f761969dda7efcd78a486a8d3f8082b5026f10c658c1b8012c46695a9882420",
+      "note": "Preserved historical measurement; not a claim of rerunning against the final source."
+    },
+    {
+      "report": "artifacts/runtime-validation.json",
+      "sha256": "60767edeca0916417317668b51e3dde8a40f2998b79368d43e7a485363cf7098",
+      "note": "Preserved historical measurement; not a claim of rerunning against the final source."
+    },
+    {
+      "report": "artifacts/engine-edge-validation.json",
+      "sha256": "c5f908a371cea61305579bb9ef93420773a114a17253e2e5da28dbaf4b7b0d08",
+      "note": "Preserved historical measurement; not a claim of rerunning against the final source."
+    },
+    {
+      "report": "artifacts/blind-ui-validation.json",
+      "sha256": "37bc615c88ba61967a69a74ae9932941489ccbafb96d8949008e86b450c541c9",
+      "note": "Preserved historical measurement; not a claim of rerunning against the final source."
+    }
+  ],
+  "listeningStatus": "one-listener-eight-event-blind-test-complete",
+  "humanListeningAggregate": {
+    "listeners": 1,
+    "events": 8,
+    "scores": {
+      "procedural": 4.5,
+      "kenney": 3.5
+    },
+    "procedural": {
+      "wins": 3,
+      "losses": 2,
+      "ties": 3
+    },
+    "caveat": "Anonymous small-sample preference only; not a statistical quality result or BGM evaluation. Raw human sessions are excluded from Git."
+  },
+  "notes": [
+    "QA choices are automated and do not represent human preferences.",
+    "The game pipeline demo uses a fixed game and a local rule director; no production integration or deployment is claimed.",
+    "Browser tests are recorded observations. Run npm test for portable contract/server checks; audio rendering needs a browser.",
+    "Historical render reports are not rewritten by this evidence index."
+  ],
+  "pass": true
+}

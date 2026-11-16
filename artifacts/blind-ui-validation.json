@@ -1,0 +1,36 @@
+{
+  "createdAt": "2026-11-16T07:12:04.024Z",
+  "purpose": "qa-only-no-listener-votes",
+  "before": {
+    "votesDisabled": true,
+    "noLabels": true
+  },
+  "interrupted": {
+    "AIncomplete": true,
+    "BComplete": true,
+    "votesDisabled": true
+  },
+  "bothHeard": true,
+  "nextRound": {
+    "votesDisabled": true,
+    "heardReset": true
+  },
+  "completed": {
+    "id": "dca933c2-3422-450a-b70f-ef3b18b2a0ad",
+    "purpose": "qa",
+    "completed": true,
+    "rounds": 8,
+    "privateStatus": 403
+  },
+  "resultUi": {
+    "scoreCards": 2,
+    "resultRows": 8,
+    "revealed": true
+  },
+  "mobile": {
+    "width": 390,
+    "documentWidth": 390,
+    "overflow": false
+  },
+  "pass": true
+}

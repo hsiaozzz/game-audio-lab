@@ -1,0 +1,200 @@
+{
+  "passed": true,
+  "files": [
+    {
+      "id": "ui",
+      "bytes": 8556,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.03601273935990589,
+      "dc": -0.0009503860635615712
+    },
+    {
+      "id": "collect",
+      "bytes": 28078,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.17111226650502542,
+      "dc": -0.0001773311070033482
+    },
+    {
+      "id": "hit",
+      "bytes": 29076,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.07034545189311772,
+      "dc": -0.0009204378554932668
+    },
+    {
+      "id": "cast",
+      "bytes": 34752,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.09781451555992957,
+      "dc": -9.57579886946992e-06
+    },
+    {
+      "id": "footstep",
+      "bytes": 68316,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.024236369191660386,
+      "dc": -0.000591285567151001
+    },
+    {
+      "id": "footstepWood",
+      "bytes": 22220,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.08949156296285388,
+      "dc": -6.606031612009981e-05
+    },
+    {
+      "id": "explosion",
+      "bytes": 68562,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.20443683306105162,
+      "dc": 0.0003332210808363997
+    },
+    {
+      "id": "charge",
+      "bytes": 76898,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.2773768676623405,
+      "dc": 7.658553477284561e-05
+    },
+    {
+      "id": "laser",
+      "bytes": 20832,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.0812548848895158,
+      "dc": -0.002221316193941529
+    },
+    {
+      "id": "metal",
+      "bytes": 23702,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.07601636006263189,
+      "dc": -0.0016246657431266932
+    },
+    {
+      "id": "reward",
+      "bytes": 25672,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.020485871612248033,
+      "dc": -5.866472000273502e-07
+    },
+    {
+      "id": "F4",
+      "bytes": 181994,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.09892932687521663,
+      "dc": 3.1759646708508324e-06,
+      "expectedHz": 349.2282314330039,
+      "measuredHz": 348.9051818847656,
+      "cents": -1.602199255026389,
+      "pitchWithin20Cents": true
+    },
+    {
+      "id": "C5",
+      "bytes": 124482,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.08360704159131355,
+      "dc": 1.9025773481710798e-05,
+      "expectedHz": 523.2511306011972,
+      "measuredHz": 524.5353698730469,
+      "cents": 4.2438414064444405,
+      "pitchWithin20Cents": true
+    },
+    {
+      "id": "G5",
+      "bytes": 70464,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.11288143157183994,
+      "dc": 2.63344508873391e-05,
+      "expectedHz": 783.9908719634985,
+      "measuredHz": 782.9338073730469,
+      "cents": -2.335819344478726,
+      "pitchWithin20Cents": true
+    },
+    {
+      "id": "B5",
+      "bytes": 66022,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.13166229084470338,
+      "dc": 9.103812278220914e-05,
+      "expectedHz": 987.7666025122483,
+      "measuredHz": 987.835693359375,
+      "cents": 0.12108958095797057,
+      "pitchWithin20Cents": true
+    },
+    {
+      "id": "F6",
+      "bytes": 67594,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.09859919478555679,
+      "dc": 9.69514836066636e-05,
+      "expectedHz": 1396.9129257320155,
+      "measuredHz": 1395.2842712402344,
+      "cents": -2.0196155437433583,
+      "pitchWithin20Cents": true
+    },
+    {
+      "id": "C7",
+      "bytes": 52528,
+      "hashMatches": true,
+      "sampleRate": 44100,
+      "channels": 1,
+      "clippedSamples": 0,
+      "rms": 0.07019313578268212,
+      "dc": 6.178340420936607e-05,
+      "expectedHz": 2093.004522404789,
+      "measuredHz": 2093.767547607422,
+      "cents": 0.6310232339517285,
+      "pitchWithin20Cents": true
+    }
+  ],
+  "method": "PCM16 decode/hash/peak checks; marimba FFT on 20-350ms segment, 131072-point spectrum; technical verification, no listening judgement."
+}

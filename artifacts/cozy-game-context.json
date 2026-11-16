@@ -1,0 +1,55 @@
+{
+  "timeline": [
+    {
+      "time": 1.2,
+      "id": "cast"
+    },
+    {
+      "time": 2.1,
+      "id": "splash"
+    },
+    {
+      "time": 5.6,
+      "id": "charge"
+    },
+    {
+      "time": 7,
+      "id": "collect"
+    },
+    {
+      "time": 10,
+      "id": "footstep"
+    },
+    {
+      "time": 10.45,
+      "id": "footstep"
+    },
+    {
+      "time": 12.3,
+      "id": "hit"
+    },
+    {
+      "time": 16,
+      "id": "collect"
+    },
+    {
+      "time": 19,
+      "id": "victory"
+    }
+  ],
+  "stats": {
+    "sampleRate": 44100,
+    "channels": 2,
+    "durationSeconds": 22,
+    "pcmBytes": 7761600,
+    "peak": 0.33983567357063293,
+    "peakDbFS": -9.374620677574747,
+    "rms": 0.03897332474667443,
+    "rmsDbFS": -28.184650874372746,
+    "nonfinite": 0,
+    "clippedSamples": 0,
+    "loopBoundaryJump": 0.0005613532551933531
+  },
+  "kind": "scripted-context-audition",
+  "sourceScore": "cozy-26f6ce88"
+}

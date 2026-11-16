@@ -1,0 +1,370 @@
+{
+  "createdAt": "2026-11-16T06:55:26.640Z",
+  "method": "Each event: FFmpeg EBU R128 measured, common LUFS target across three variants, constant gain only. Target <= -23 LUFS and predicted true peak <= -3 dBTP; no limiter or dynamics processing.",
+  "caveat": "Reference is the prepared Kenney sample alone. Hybrid deliberately reuses that sample. Similarity is not evidence of independent synthesis quality. This is a listening comparison, not a subjective quality score.",
+  "spacingSeconds": 1.8,
+  "onsetSeconds": 0.2,
+  "brief": {
+    "title": "Sunlit Tides",
+    "style": "cozy",
+    "bpm": 92,
+    "rootMidi": 62,
+    "mode": "major",
+    "instruments": [
+      "marimba",
+      "softKeys",
+      "bass",
+      "kick",
+      "shaker",
+      "fmBell"
+    ],
+    "description": "Warm mallet theme, soft keys, gently syncopated bass and brushed island percussion.",
+    "sceneStates": [
+      "menu",
+      "exploration",
+      "fishing",
+      "reward"
+    ],
+    "eventBindings": {
+      "ui.confirm": "ui",
+      "world.step": "step",
+      "fishing.cast": "cast",
+      "fishing.bite": "alert",
+      "item.collect": "collect",
+      "player.hit": "hit",
+      "game.victory": "victory",
+      "game.failure": "failure"
+    },
+    "id": "cozy-26f6ce88",
+    "prompt": "做一个温暖的海岛钓鱼游戏，午后的阳光、轻柔的海浪，收获鱼儿时有愉快的奖励反馈。",
+    "meter": 4,
+    "bars": 16,
+    "seed": 653708936,
+    "director": {
+      "kind": "local-rule-based-research-prototype",
+      "supportedProfiles": [
+        "cozy",
+        "neon",
+        "ruins"
+      ],
+      "matched": true,
+      "limitation": "Keyword profile routing plus seeded composition; not an arbitrary-prompt AI music model."
+    }
+  },
+  "matchingPasses": 2,
+  "events": [
+    {
+      "id": "ui",
+      "start": 0,
+      "onset": 0.2,
+      "duration": 1.8,
+      "targetLUFS": -32.93,
+      "variants": {
+        "synth": {
+          "integratedLUFS": -42.55,
+          "truePeakDbTP": -23.65,
+          "gainDb": 9.64,
+          "matched": {
+            "integratedLUFS": -32.95,
+            "truePeakDbTP": -14.01
+          }
+        },
+        "reference": {
+          "integratedLUFS": -30.88,
+          "truePeakDbTP": -1.25,
+          "gainDb": -2.0599999999999987,
+          "matched": {
+            "integratedLUFS": -32.98,
+            "truePeakDbTP": -3.31
+          }
+        },
+        "hybrid": {
+          "integratedLUFS": -40.58,
+          "truePeakDbTP": -16.23,
+          "gainDb": 7.670000000000002,
+          "matched": {
+            "integratedLUFS": -32.95,
+            "truePeakDbTP": -8.56
+          }
+        }
+      }
+    },
+    {
+      "id": "collect",
+      "start": 1.8,
+      "onset": 2,
+      "duration": 1.8,
+      "targetLUFS": -23,
+      "variants": {
+        "synth": {
+          "integratedLUFS": -32.09,
+          "truePeakDbTP": -18.11,
+          "gainDb": 9.080000000000002,
+          "matched": {
+            "integratedLUFS": -22.99,
+            "truePeakDbTP": -9.03
+          }
+        },
+        "reference": {
+          "integratedLUFS": -11.66,
+          "truePeakDbTP": -0.35,
+          "gainDb": -11.350000000000001,
+          "matched": {
+            "integratedLUFS": -22.99,
+            "truePeakDbTP": -11.7
+          }
+        },
+        "hybrid": {
+          "integratedLUFS": -25.54,
+          "truePeakDbTP": -11.57,
+          "gainDb": 2.5500000000000007,
+          "matched": {
+            "integratedLUFS": -22.98,
+            "truePeakDbTP": -9.02
+          }
+        }
+      }
+    },
+    {
+      "id": "cast",
+      "start": 3.6,
+      "onset": 3.8000000000000003,
+      "duration": 1.8,
+      "targetLUFS": -23,
+      "variants": {
+        "synth": {
+          "integratedLUFS": -39.75,
+          "truePeakDbTP": -22.07,
+          "gainDb": 16.7,
+          "matched": {
+            "integratedLUFS": -23.05,
+            "truePeakDbTP": -5.37
+          }
+        },
+        "reference": {
+          "integratedLUFS": -15.21,
+          "truePeakDbTP": -2.69,
+          "gainDb": -7.779999999999998,
+          "matched": {
+            "integratedLUFS": -23.01,
+            "truePeakDbTP": -10.47
+          }
+        },
+        "hybrid": {
+          "integratedLUFS": -29.31,
+          "truePeakDbTP": -17.54,
+          "gainDb": 6.32,
+          "matched": {
+            "integratedLUFS": -23.01,
+            "truePeakDbTP": -11.22
+          }
+        }
+      }
+    },
+    {
+      "id": "footstep",
+      "start": 5.4,
+      "onset": 5.6000000000000005,
+      "duration": 1.8,
+      "targetLUFS": -30.55,
+      "variants": {
+        "synth": {
+          "integratedLUFS": -42.05,
+          "truePeakDbTP": -20.75,
+          "gainDb": 11.499999999999996,
+          "matched": {
+            "integratedLUFS": -30.55,
+            "truePeakDbTP": -9.25
+          }
+        },
+        "reference": {
+          "integratedLUFS": -27.28,
+          "truePeakDbTP": -0.03,
+          "gainDb": -3.240000000000002,
+          "matched": {
+            "integratedLUFS": -30.48,
+            "truePeakDbTP": -3.27
+          }
+        },
+        "hybrid": {
+          "integratedLUFS": -46.18,
+          "truePeakDbTP": -18.98,
+          "gainDb": 15.559999999999999,
+          "matched": {
+            "integratedLUFS": -30.58,
+            "truePeakDbTP": -3.42
+          }
+        }
+      }
+    },
+    {
+      "id": "hit",
+      "start": 7.2,
+      "onset": 7.4,
+      "duration": 1.8,
+      "targetLUFS": -24.32,
+      "variants": {
+        "synth": {
+          "integratedLUFS": -32.95,
+          "truePeakDbTP": -15.47,
+          "gainDb": 8.560000000000002,
+          "matched": {
+            "integratedLUFS": -24.35,
+            "truePeakDbTP": -6.91
+          }
+        },
+        "reference": {
+          "integratedLUFS": -22.05,
+          "truePeakDbTP": -1.03,
+          "gainDb": -2.3099999999999987,
+          "matched": {
+            "integratedLUFS": -24.35,
+            "truePeakDbTP": -3.34
+          }
+        },
+        "hybrid": {
+          "integratedLUFS": -29.95,
+          "truePeakDbTP": -11.57,
+          "gainDb": 5.66,
+          "matched": {
+            "integratedLUFS": -24.35,
+            "truePeakDbTP": -5.91
+          }
+        }
+      }
+    },
+    {
+      "id": "laser",
+      "start": 9,
+      "onset": 9.2,
+      "duration": 1.8,
+      "targetLUFS": -23,
+      "variants": {
+        "synth": {
+          "integratedLUFS": -37.05,
+          "truePeakDbTP": -21.26,
+          "gainDb": 13.999999999999996,
+          "matched": {
+            "integratedLUFS": -23.05,
+            "truePeakDbTP": -7.26
+          }
+        },
+        "reference": {
+          "integratedLUFS": -22.62,
+          "truePeakDbTP": -9.23,
+          "gainDb": -0.35999999999999943,
+          "matched": {
+            "integratedLUFS": -23.01,
+            "truePeakDbTP": -9.59
+          }
+        },
+        "hybrid": {
+          "integratedLUFS": -34.85,
+          "truePeakDbTP": -18.47,
+          "gainDb": 13.060000000000002,
+          "matched": {
+            "integratedLUFS": -23.01,
+            "truePeakDbTP": -5.41
+          }
+        }
+      }
+    },
+    {
+      "id": "charge",
+      "start": 10.8,
+      "onset": 11,
+      "duration": 1.8,
+      "targetLUFS": -23,
+      "variants": {
+        "synth": {
+          "integratedLUFS": -33.54,
+          "truePeakDbTP": -18.83,
+          "gainDb": 10.579999999999998,
+          "matched": {
+            "integratedLUFS": -22.98,
+            "truePeakDbTP": -8.25
+          }
+        },
+        "reference": {
+          "integratedLUFS": -7.7,
+          "truePeakDbTP": -0.89,
+          "gainDb": -15.3,
+          "matched": {
+            "integratedLUFS": -23,
+            "truePeakDbTP": -16.19
+          }
+        },
+        "hybrid": {
+          "integratedLUFS": -24.21,
+          "truePeakDbTP": -16.3,
+          "gainDb": 1.1999999999999993,
+          "matched": {
+            "integratedLUFS": -23.01,
+            "truePeakDbTP": -15.1
+          }
+        }
+      }
+    },
+    {
+      "id": "explosion",
+      "start": 12.6,
+      "onset": 12.799999999999999,
+      "duration": 1.8,
+      "targetLUFS": -23,
+      "variants": {
+        "synth": {
+          "integratedLUFS": -24.55,
+          "truePeakDbTP": -9.37,
+          "gainDb": 1.5,
+          "matched": {
+            "integratedLUFS": -23.05,
+            "truePeakDbTP": -7.87
+          }
+        },
+        "reference": {
+          "integratedLUFS": -14.22,
+          "truePeakDbTP": -0.94,
+          "gainDb": -8.799999999999999,
+          "matched": {
+            "integratedLUFS": -23.02,
+            "truePeakDbTP": -9.74
+          }
+        },
+        "hybrid": {
+          "integratedLUFS": -24.98,
+          "truePeakDbTP": -9.55,
+          "gainDb": 1.9699999999999989,
+          "matched": {
+            "integratedLUFS": -22.99,
+            "truePeakDbTP": -7.58
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "synth": {
+      "wav": "sfx-synth-matched.wav",
+      "mp3": "sfx-synth-listen.mp3",
+      "sha256": "bd7de37cb56f82c0d1eab436814b6df3580f212b7415ed03cc4cbc2e980d262c",
+      "integratedLUFS": -23.51,
+      "truePeakDbTP": -5.41
+    },
+    "reference": {
+      "wav": "sfx-reference-matched.wav",
+      "mp3": "sfx-reference-listen.mp3",
+      "sha256": "76ebd27e555bd9ff0923e1db3d11282528c5367937a6522c4081fb1f5c4cefdf",
+      "integratedLUFS": -24.05,
+      "truePeakDbTP": -3.33
+    },
+    "hybrid": {
+      "wav": "sfx-hybrid-matched.wav",
+      "mp3": "sfx-hybrid-listen.mp3",
+      "sha256": "1013c5644f9d9de545223645a4351e829939fe3483f435b49151f00b38222ca6",
+      "integratedLUFS": -23.64,
+      "truePeakDbTP": -3.57
+    }
+  },
+  "maxLoudnessSpreadLU": 0.09999999999999787,
+  "pass": true
+}

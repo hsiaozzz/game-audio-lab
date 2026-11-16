@@ -1,0 +1,198 @@
+{
+  "createdAt": "2026-11-16T07:31:18.698Z",
+  "script": "scripts/check-audio-engine.mjs",
+  "origin": "http://127.0.0.1:4178",
+  "purpose": "Dedicated Chromium Web Audio API lifecycle, validation, silent-stem and SFX baseline checks.",
+  "caveat": "Technical QA only. No full BGM render and no subjective quality score.",
+  "pageErrors": [],
+  "pass": true,
+  "engineSha256": "14039df2c276e9b1bd996b02cd97c7260953e135a8a0b6f1b10ac4319e816916",
+  "sfxRecipeSha256": "851ff6c22e518b45a9a5f72d4e4618acd479520edac9586f650c3210864bb739",
+  "instrumentDefinitionsSha256": "cc9b48e501278835f0bffbff1ba6eb65cc40ed44a90b990c94986922633ed9a5",
+  "sampleHashes": [
+    {
+      "id": "ui",
+      "expectedSha256": "9af88484b09e2c13ac3b033a02699785bf58ec57a87dde2b1af0b74286166b4b",
+      "actualSha256": "9af88484b09e2c13ac3b033a02699785bf58ec57a87dde2b1af0b74286166b4b",
+      "match": true
+    },
+    {
+      "id": "collect",
+      "expectedSha256": "223720be96df8e0a02c38fd556740ee4c23145ba4dbc3292b7b6445eb22c6f9b",
+      "actualSha256": "223720be96df8e0a02c38fd556740ee4c23145ba4dbc3292b7b6445eb22c6f9b",
+      "match": true
+    },
+    {
+      "id": "hit",
+      "expectedSha256": "5ba062ccf74d0e69645129a815f432a3a0a4e629d399f9c7ead1a8ee4d9944eb",
+      "actualSha256": "5ba062ccf74d0e69645129a815f432a3a0a4e629d399f9c7ead1a8ee4d9944eb",
+      "match": true
+    },
+    {
+      "id": "cast",
+      "expectedSha256": "84acf712dabd53bdefad0f06b1769c0ff130510d2c94129bbf966853cf049df9",
+      "actualSha256": "84acf712dabd53bdefad0f06b1769c0ff130510d2c94129bbf966853cf049df9",
+      "match": true
+    },
+    {
+      "id": "footstep",
+      "expectedSha256": "78fc719326415cbc88511c609eaca7330bf173c7d1b3825259a99d585ca50440",
+      "actualSha256": "78fc719326415cbc88511c609eaca7330bf173c7d1b3825259a99d585ca50440",
+      "match": true
+    },
+    {
+      "id": "footstepWood",
+      "expectedSha256": "976d90bfbc6f02a2a8c8245fc3bbff15a6b976f8a4b64c8102c05f424853a22d",
+      "actualSha256": "976d90bfbc6f02a2a8c8245fc3bbff15a6b976f8a4b64c8102c05f424853a22d",
+      "match": true
+    },
+    {
+      "id": "explosion",
+      "expectedSha256": "d884eb77432897b7185e4f26ad613f1896ab8eaf799ac05ddbf90cb6e7df5ca3",
+      "actualSha256": "d884eb77432897b7185e4f26ad613f1896ab8eaf799ac05ddbf90cb6e7df5ca3",
+      "match": true
+    },
+    {
+      "id": "charge",
+      "expectedSha256": "3b8f2c5c4345563f4d9d20333dd2dcdedb2f495988bb6a65e05f2f7d0b9dd1b4",
+      "actualSha256": "3b8f2c5c4345563f4d9d20333dd2dcdedb2f495988bb6a65e05f2f7d0b9dd1b4",
+      "match": true
+    },
+    {
+      "id": "laser",
+      "expectedSha256": "f82b564488bd4e944a7b4ee0d9edecdb7ebe1d72feb665e9f6c6bfbb5b880dc7",
+      "actualSha256": "f82b564488bd4e944a7b4ee0d9edecdb7ebe1d72feb665e9f6c6bfbb5b880dc7",
+      "match": true
+    },
+    {
+      "id": "metal",
+      "expectedSha256": "c93c8a4e79e7b8c9161dc9a8fddc7132af580cce3db5e4081ed4aa64461fccf7",
+      "actualSha256": "c93c8a4e79e7b8c9161dc9a8fddc7132af580cce3db5e4081ed4aa64461fccf7",
+      "match": true
+    },
+    {
+      "id": "reward",
+      "expectedSha256": "4064b3c4000c37f8899a14ed7994f05a87597dab9f7a141fbe7821a6a7f7cdca",
+      "actualSha256": "4064b3c4000c37f8899a14ed7994f05a87597dab9f7a141fbe7821a6a7f7cdca",
+      "match": true
+    }
+  ],
+  "browserVersion": "153.0.8010.12",
+  "result": {
+    "pass": true,
+    "checks": [
+      "owned realtime contexts are isolated",
+      "dispose is idempotent and terminal",
+      "another runtime remains usable after disposal",
+      "nonloop natural end",
+      "music playback does not require sound-bank fetch",
+      "pending play cancellation",
+      "pause/resume",
+      "invalid playback preserves current music",
+      "NaN/null input rejected without poisoning state",
+      "retiring source cleanup",
+      "dispose cancels in-flight unlock/event",
+      "suspended audio keeps its tail despite elapsed wall time",
+      "audio-clock voice cleanup",
+      "12-voice budget under concurrent events",
+      "dispose releases voices, sources and analyser",
+      "invalid score/style/mode/sampleRate fails before allocation",
+      "render queue recovers after validation error",
+      "two empty stems skip offline rendering",
+      "runtime unlock is independent of active Tone offline context",
+      "existing SFX baseline preserved within one PCM16 LSB across browsers; exact hashes retained separately"
+    ],
+    "observations": {
+      "nonloop": {
+        "contextState": "running",
+        "disposed": false,
+        "playing": false,
+        "paused": false,
+        "intensity": 0.5,
+        "muted": false,
+        "position": 0.09,
+        "totalEvents": 0,
+        "activeSources": 0,
+        "retiringSources": 0,
+        "stemLevels": {},
+        "voiceCount": 0,
+        "retainedVoiceCount": 0,
+        "baseLatency": 0.01,
+        "outputLatency": 0.04,
+        "intensityAt": 0
+      },
+      "suspendedCharge": {
+        "after1100msWallClock": 1,
+        "afterAudioClockResumed": 0
+      },
+      "shortScore": {
+        "stats": {
+          "sampleRate": 44100,
+          "channels": 2,
+          "durationSeconds": 0.12,
+          "pcmBytes": 42336,
+          "peak": 0.19188472628593445,
+          "peakDbFS": -14.339191860551582,
+          "rms": 0.04896212430956162,
+          "rmsDbFS": -26.202794956177037,
+          "nonfinite": 0,
+          "clippedSamples": 0,
+          "loopBoundaryJump": 0.00009068539475265425,
+          "renderMs": 34,
+          "mode": "synth",
+          "instrumentSource": "synthesis",
+          "normalizationGainDb": 12,
+          "trackCount": 1,
+          "eventCount": 1,
+          "stemCount": 3,
+          "offlineStemCount": 1,
+          "skippedSilentStems": [
+            "core",
+            "texture"
+          ],
+          "totalCachedPcmBytes": 169344,
+          "method": "Tone.Offline, two cycles per nonempty stem, retained second cycle; silent stems allocated directly",
+          "toneVersion": "15.1.22"
+        },
+        "toneContextRestored": true
+      },
+      "sfxBaseline": {
+        "synth": {
+          "expectedSha256": "25a2be15b996c2684b4b20136d280a978e50f49c304cc479375c039a7c1d1d73",
+          "actualSha256": "52228c52219bcf6ef527560347d66ee083a29e7933c7d13b3967fbbd7558e8a8",
+          "exactMatch": false,
+          "matchingSampleCount": true,
+          "maxDifferencePcm16LSB": 1,
+          "changedSamples": 20,
+          "rmsDifferencePcm16LSB": 0.003914261602508507,
+          "withinCrossBrowserRounding": true,
+          "acceptance": "Equal sample count and every PCM16 sample differs by at most one LSB from the existing Ego-rendered baseline; exact hashes are reported separately."
+        },
+        "reference": {
+          "expectedSha256": "fd200ed003072589f2093571c5c09e55f92e749299126133c56f2469a9114e90",
+          "actualSha256": "fd200ed003072589f2093571c5c09e55f92e749299126133c56f2469a9114e90",
+          "exactMatch": true,
+          "matchingSampleCount": true,
+          "maxDifferencePcm16LSB": 0,
+          "changedSamples": 0,
+          "rmsDifferencePcm16LSB": 0,
+          "withinCrossBrowserRounding": true,
+          "acceptance": "Equal sample count and every PCM16 sample differs by at most one LSB from the existing Ego-rendered baseline; exact hashes are reported separately."
+        },
+        "hybrid": {
+          "expectedSha256": "ebef3211993f72a5d2ee37974f7a2b95a84c751c7d1200d5db3b7417c21e33cb",
+          "actualSha256": "4189a913c84eb689080dc1566ee78cd2f3599a92ceba33b858926821ab6ca708",
+          "exactMatch": false,
+          "matchingSampleCount": true,
+          "maxDifferencePcm16LSB": 1,
+          "changedSamples": 4,
+          "rmsDifferencePcm16LSB": 0.0017505110049852565,
+          "withinCrossBrowserRounding": true,
+          "acceptance": "Equal sample count and every PCM16 sample differs by at most one LSB from the existing Ego-rendered baseline; exact hashes are reported separately."
+        }
+      }
+    },
+    "contextCount": 6,
+    "bankRequests": 1
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "createdAt": "2026-11-16T06:56:21.489Z",
+  "engineSha256": "b95ee0561f4a0f8d3a96c0fd7d27afb73291287c80e06e3386f1867f6f14a7d7",
+  "checks": {
+    "userGestureUnlock": true,
+    "threeRealStems": true,
+    "realAudioOutput": true,
+    "voiceBudget": true,
+    "muteActualOutput": true,
+    "intensityChangesRealGains": true,
+    "pauseStopsSources": true,
+    "pauseOutputSilent": true,
+    "pausePositionStable": true,
+    "resumeRestoresStems": true,
+    "stopReleasesSources": true,
+    "disposeClosesContext": true
+  },
+  "initial": {
+    "contextState": "running",
+    "playing": true,
+    "paused": false,
+    "intensity": 0.5,
+    "muted": false,
+    "position": 0.1156666666666667,
+    "totalEvents": 0,
+    "activeSources": 3,
+    "stemLevels": {
+      "core": 0.8999999761581421,
+      "texture": 0.675000011920929,
+      "rhythm": 0.5600000023841858
+    },
+    "voiceCount": 0,
+    "baseLatency": 0.01,
+    "outputLatency": 0.032,
+    "intensityAt": 0
+  },
+  "stress": {
+    "accepted": 12,
+    "rejected": 12
+  },
+  "highIntensity": {
+    "contextState": "running",
+    "playing": true,
+    "paused": false,
+    "intensity": 1,
+    "muted": false,
+    "position": 3.225,
+    "totalEvents": 12,
+    "activeSources": 3,
+    "stemLevels": {
+      "core": 0.8999999761581421,
+      "texture": 0.9946596622467041,
+      "rhythm": 0.9927697777748108
+    },
+    "voiceCount": 0,
+    "baseLatency": 0.01,
+    "outputLatency": 0.032,
+    "intensityAt": 2.7650289855072465
+  },
+  "pass": true
+}

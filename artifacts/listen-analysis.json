@@ -1,0 +1,60 @@
+{
+  "createdAt": "2026-11-16T06:57:01.760Z",
+  "method": "MP3 full decode plus FFmpeg EBU R128 measurement; no listening rating implied.",
+  "results": [
+    {
+      "file": "cozy-game-context.mp3",
+      "bytes": 319805,
+      "integratedLUFS": -26.37,
+      "truePeakDbTP": -9.35
+    },
+    {
+      "file": "cozy-hybrid-listen.mp3",
+      "bytes": 628896,
+      "integratedLUFS": -22,
+      "truePeakDbTP": -4.61
+    },
+    {
+      "file": "cozy-synth-listen.mp3",
+      "bytes": 546888,
+      "integratedLUFS": -22,
+      "truePeakDbTP": -3.35
+    },
+    {
+      "file": "neon-listen.mp3",
+      "bytes": 671061,
+      "integratedLUFS": -18.46,
+      "truePeakDbTP": -0.87
+    },
+    {
+      "file": "ruins-listen.mp3",
+      "bytes": 503618,
+      "integratedLUFS": -22.77,
+      "truePeakDbTP": -5.78
+    },
+    {
+      "file": "sfx-hybrid-listen.mp3",
+      "bytes": 90008,
+      "integratedLUFS": -23.64,
+      "truePeakDbTP": -3.57
+    },
+    {
+      "file": "sfx-listen.mp3",
+      "bytes": 113988,
+      "integratedLUFS": -30.54,
+      "truePeakDbTP": -9.4
+    },
+    {
+      "file": "sfx-reference-listen.mp3",
+      "bytes": 86636,
+      "integratedLUFS": -24.05,
+      "truePeakDbTP": -3.33
+    },
+    {
+      "file": "sfx-synth-listen.mp3",
+      "bytes": 83540,
+      "integratedLUFS": -23.51,
+      "truePeakDbTP": -5.41
+    }
+  ]
+}

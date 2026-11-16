@@ -1,0 +1,9 @@
+{
+  "name": "tone",
+  "version": "15.1.22",
+  "license": "MIT",
+  "source": "https://registry.npmjs.org/tone/-/tone-15.1.22.tgz",
+  "integrity": "sha512-TCScAGD4sLsama5DjvTUXlLDXSqPealhL64nsdV1hhr6frPWve0DeSo63AKnSJwgfg55fhvxj0iPPRwPN5o0ag==",
+  "bytes": 1059682,
+  "bundleSha256": "e290952fa43d9a7a780182a83c6fccf44d79cb7ae2cba102ef1f2b9d98124e22"
+}

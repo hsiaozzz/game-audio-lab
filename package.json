@@ -1,0 +1,24 @@
+{
+  "name": "game-audio-lab",
+  "version": "0.1.0-research",
+  "private": true,
+  "type": "module",
+  "description": "Independent prompt-to-game-audio research prototype",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node scripts/server.mjs",
+    "test": "node scripts/test.mjs",
+    "compose:check": "node scripts/compose-check.mjs",
+    "pipeline:check": "node scripts/check-pipeline.mjs",
+    "bridge:check": "node scripts/check-bridge.mjs",
+    "setup:tone": "node scripts/setup-tone.mjs",
+    "assets:prepare": "node scripts/prepare-assets.mjs",
+    "render:probe": "node scripts/headless-probe.mjs",
+    "render:suite": "node scripts/render-suite.mjs",
+    "engine:check": "node scripts/check-audio-engine.mjs",
+    "analyze": "node scripts/analyze.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

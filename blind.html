@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11152b">
+  <title>声音盲听 · Game Audio Lab</title>
+  <link rel="stylesheet" href="/src/blind.css">
+</head>
+<body>
+  <main class="blind-shell">
+    <header class="blind-header"><div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>GAME AUDIO <b>LAB</b></span></div><span class="privacy"><i></i> 本地匿名评审</span></header>
+    <section id="intro" class="intro-view">
+      <p class="eyebrow">LISTEN WITHOUT LABELS</p>
+      <h1>先听声音，<br><span>再看答案。</span></h1>
+      <p class="intro-copy">八轮短音效，两个匿名候选。<br>不看名称和来源，让耳朵做一次选择。</p>
+      <div class="intro-method"><div><span>01</span><p>依次完整试听 A 和 B<br><small>每段约 1.8 秒，可以反复听</small></p></div><div><span>02</span><p>记录真实偏好<br><small>更喜欢一版、差不多，或都不喜欢</small></p></div><div><span>03</span><p>全部完成后揭晓<br><small>查看总分、来源与逐题结果</small></p></div></div>
+      <button id="start" class="primary" type="button">开始八轮盲听 <span>↗</span></button>
+      <p class="intro-foot">同类声音已逐项匹配响度。每次新会话都会重新随机题目顺序与 A/B 位置。无需姓名，不发送到远端。</p>
+    </section>
+    <section id="round-view" class="round-view" hidden>
+      <div class="round-heading"><div><p class="eyebrow">A SMALL EXPERIMENT IN LISTENING</p><h1 id="round-heading-title" tabindex="-1">哪一个声音，<span>更打动你？</span></h1></div><span id="round-number" class="round-number">01 <small>/ 08</small></span></div>
+      <div id="progress" class="progress-steps" role="progressbar" aria-label="评审进度" aria-valuemin="1" aria-valuemax="8" aria-valuenow="1"></div>
+      <div class="question-panel">
+        <div class="question-top"><span id="question-label">第 1 轮 / 匿名短音效</span><span class="duration">各约 1.8 秒</span></div>
+        <div class="candidates">
+          <article id="card-A" class="candidate"><div class="candidate-title"><span class="candidate-letter">A</span><span id="heard-A" class="heard-label">尚未完整试听</span></div><div class="clip-visual" aria-hidden="true"><span>◌</span></div><div class="clip-progress" role="progressbar" aria-label="A 播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="clip-progress-A"></i></div><button id="play-A" class="listen-button" data-testid="play-A" type="button" aria-pressed="false" aria-describedby="heard-A listening-hint"><span aria-hidden="true">▶</span> 试听 A</button></article>
+          <article id="card-B" class="candidate"><div class="candidate-title"><span class="candidate-letter">B</span><span id="heard-B" class="heard-label">尚未完整试听</span></div><div class="clip-visual" aria-hidden="true"><span>◌</span></div><div class="clip-progress" role="progressbar" aria-label="B 播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="clip-progress-B"></i></div><button id="play-B" class="listen-button" data-testid="play-B" type="button" aria-pressed="false" aria-describedby="heard-B listening-hint"><span aria-hidden="true">▶</span> 试听 B</button></article>
+        </div>
+        <p id="listening-hint" class="listening-hint" role="status" aria-live="polite" aria-atomic="true">请先完整听过两段，再选择。回听不会影响已记录的试听状态。</p>
+        <div class="vote-section"><span class="field-label">你的判断</span><div class="vote-buttons"><button id="vote-A" type="button" data-choice="A" disabled>更喜欢 A <span>↗</span></button><button id="vote-B" type="button" data-choice="B" disabled>更喜欢 B <span>↗</span></button><button id="vote-tie" type="button" data-choice="tie" disabled>差不多</button><button id="vote-neither" type="button" data-choice="neither" disabled>都不喜欢</button></div></div>
+      </div>
+      <p class="round-foot">题目与候选位置由本地服务随机安排；来源在全部完成前保持隐藏。选择提交后进入下一轮。</p>
+    </section>
+    <section id="results-view" class="results-view" hidden>
+      <p class="eyebrow">YOUR LISTENING, REVEALED</p><h1 id="results-heading-title" tabindex="-1">你的耳朵，<span>给出了答案。</span></h1><p class="result-intro">八轮评审已完成。以下是本次匿名选择与来源揭晓。</p>
+      <div id="score-cards" class="score-cards"></div>
+      <p id="score-rule" class="score-rule"></p>
+      <section class="result-table-panel"><div class="table-title"><h2>逐题揭晓</h2><span id="result-rounds-label">8 轮记录</span></div><div class="table-scroll" tabindex="0" role="region" aria-label="逐题揭晓，可横向滚动"><table><thead><tr><th scope="col">轮次</th><th scope="col">声音事件</th><th scope="col">A 的来源</th><th scope="col">B 的来源</th><th scope="col">你的选择</th><th scope="col">结果</th></tr></thead><tbody id="result-rows"></tbody></table></div></section>
+      <p class="result-note">这是一位评审在这组样例中的偏好记录。它不能代表所有人或所有声音的质量结论；“差不多”和“都不喜欢”也会原样保留。</p>
+      <div class="restart-row"><button id="restart" class="primary" type="button">再做一轮新盲听 <span>↗</span></button><p>创建新的匿名记录并重新随机。<br>已有结果会保留，不会被清除。</p></div>
+    </section>
+    <div id="status" class="status" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+    <button id="sync-progress" class="sync-button" type="button" hidden>同步评审进度</button>
+    <footer><span>GAME AUDIO LAB / 盲听研究</span><span>听感偏好，不由名称决定。</span></footer>
+  </main>
+  <script type="module" src="/src/blind-ui.mjs"></script>
+</body>
+</html>

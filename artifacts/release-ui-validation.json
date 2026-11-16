@@ -1,0 +1,17 @@
+{
+  "createdAt": "2026-11-16T07:47:22.899Z",
+  "purpose": "Isolated QA origin 4179; no listener votes changed",
+  "checks": {
+    "initialVotesDisabled": true,
+    "playFailureRecoverable": true,
+    "interruptedIsNotHeard": true,
+    "bothSidesHeard": true,
+    "savedVoteResponseLossRecovers": true,
+    "nextRoundResets": true
+  },
+  "pass": true,
+  "sourceHashes": {
+    "src/blind-ui.mjs": "3ab02b452e294727bc271e77e7861ea409a1c8c0461c72388dc2aa0fde1b37c2",
+    "blind.html": "3bd284e0a3ab2b591c69583d0657824d72cc3b5f589b81feb3232e103d339878"
+  }
+}

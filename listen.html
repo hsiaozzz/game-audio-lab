@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11152b">
+  <title>直接试听 · Game Audio Lab</title>
+  <style>
+    :root{color-scheme:dark;--bg:#11152b;--panel:#1a2039;--line:#303750;--muted:#9aa4bd;--text:#f1eee6;--mint:#a3efce;--yellow:#f0d6a1;font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;font-synthesis:none}*{box-sizing:border-box}body{margin:0;color:var(--text);background:radial-gradient(ellipse at 85% 0,#242c43 0,transparent 45%),var(--bg);font-size:14px;line-height:1.7}a{color:var(--mint);text-decoration:none}a:hover{text-decoration:underline}a:focus-visible,audio:focus-visible{outline:2px solid var(--mint);outline-offset:5px}main{max-width:1170px;margin:auto;padding:0 40px}.header{height:92px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line)}.brand{display:flex;gap:12px;align-items:center;color:var(--text);font-size:14px;font-weight:700;letter-spacing:2px}.brand b{color:var(--mint);font-weight:400}.mark{display:flex;gap:3px;align-items:center;height:28px}.mark i{display:block;width:4px;border-radius:3px;background:var(--mint);height:13px}.mark i:nth-child(2){height:27px}.mark i:nth-child(3){height:20px}.mark i:nth-child(4){height:9px}.header nav{display:flex;gap:22px;font-size:11px;color:var(--muted)}.intro{padding:42px 0 29px;max-width:780px}.eyebrow{color:var(--mint);font-size:10px;letter-spacing:2.6px;margin:0 0 12px}h1{font-size:34px;line-height:1.4;font-weight:600;margin:0 0 12px;letter-spacing:.3px}h1 span{color:var(--mint)}.intro>p:last-child{margin:0;color:var(--muted);font-size:13px;line-height:1.9}.notice{display:flex;align-items:flex-start;gap:11px;padding:16px 19px;margin:0 0 27px;border:1px solid #47564e;border-radius:10px;background:#20373166;color:#b6cdbf;font-size:12px}.notice>span{color:var(--mint);font-size:17px;line-height:1.6}.notice p{margin:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:19px}.card{border:1px solid var(--line);border-radius:15px;background:var(--panel);padding:24px}.card.featured{background:linear-gradient(130deg,#233b3c,#1a2039 65%);border-color:#4b6c61}.kicker{font-size:9px;color:var(--muted);letter-spacing:1.6px;margin:0 0 10px}.card h2{font-size:20px;line-height:1.5;font-weight:500;margin:0 0 10px}.card p{font-size:12px;color:var(--muted);line-height:1.9;margin:0 0 20px}.card .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 17px}.tag{font-size:9px;border:1px solid #44524e;color:#b9dbc9;border-radius:4px;padding:3px 7px;background:#233b34}.tag.warm{color:var(--yellow);border-color:#605746;background:#39372f}.tag.blue{color:#b6c9f0;border-color:#4e5975;background:#29334b}audio{display:block;width:100%;height:42px;border-radius:24px;background:#f1f3f4}.download{display:inline-block;font-size:10px;color:#a5b3c8;margin-top:10px}.section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:35px 0 15px}.section-heading h2{font-size:21px;font-weight:500;margin:0}.section-heading p{font-size:11px;color:var(--muted);margin:0;max-width:540px;text-align:right}.comparison{border:1px solid var(--line);border-radius:15px;background:var(--panel);overflow:hidden}.comparison-intro{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:20px}.comparison-intro strong{font-size:14px;font-weight:500}.comparison-intro span{font-size:10px;color:var(--muted)}.comparison .grid{gap:0}.comparison .card{border:0;border-radius:0;background:none}.comparison .card:first-child{border-right:1px solid var(--line)}.ab-label{height:24px;width:24px;display:inline-grid;place-items:center;border:1px solid #68746d;border-radius:5px;color:var(--mint);font-size:12px;margin-right:8px;vertical-align:2px}.comparison .card h2{font-size:17px}.scope{margin-top:28px;padding:20px 24px;border:1px solid var(--line);border-radius:12px;background:#161c31}.scope h2{font-size:14px;font-weight:500;margin:0 0 9px}.scope p{font-size:11px;line-height:1.95;color:var(--muted);margin:0}.scope a{color:#b7dbc8}footer{display:flex;justify-content:space-between;gap:16px;color:#737f9c;font-size:9px;letter-spacing:.4px;padding:26px 0 31px}@media(max-width:700px){main{padding:0 21px}.header{height:77px}.header nav{gap:14px;font-size:10px}.brand{font-size:11px;letter-spacing:1px;gap:8px}.intro{padding:31px 0 23px}h1{font-size:28px}.grid{grid-template-columns:1fr;gap:15px}.card{padding:21px}.section-heading{display:block;margin-top:28px}.section-heading p{text-align:left;margin-top:7px}.comparison-intro{padding:18px 21px;display:block}.comparison-intro span{display:block;margin-top:5px}.comparison .card:first-child{border-right:0;border-bottom:1px solid var(--line)}.comparison .grid{gap:0}.notice{padding:14px 16px;font-size:11px}.scope{padding:18px 20px}footer{display:block;line-height:2}footer span{display:block}}@media(max-width:390px){main{padding:0 15px}.header nav{gap:10px}.header nav a:last-child{display:none}h1{font-size:25px}}
+    .sfx-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.comparison .sfx-grid .card{display:flex;flex-direction:column}.comparison .sfx-grid .card:nth-child(2){border-right:1px solid var(--line)}.sfx-grid audio{margin-top:auto}.comparison-method{border-top:1px solid var(--line);padding:16px 24px;color:var(--muted);font-size:11px;line-height:1.9}.comparison-method p{margin:0}.comparison-method p+p{margin-top:8px}.event-order{color:#c6ddcf}@media(max-width:900px){.sfx-grid{grid-template-columns:1fr}.comparison .sfx-grid .card:first-child,.comparison .sfx-grid .card:nth-child(2){border-right:0;border-bottom:1px solid var(--line)}.comparison-method{padding:16px 21px}}
+  </style>
+</head>
+<body>
+  <main>
+    <header class="header">
+      <a class="brand" href="/"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>GAME AUDIO <b>LAB</b></span></a>
+      <nav aria-label="页面导航"><a href="/">返回实验室 ↗</a><a href="/REPORT.md">实验报告 ↗</a></nav>
+    </header>
+    <section class="intro">
+      <p class="eyebrow">LISTEN FIRST / RESEARCH EDITION</p>
+      <h1>先听见，<span>再判断。</span></h1>
+      <p>这里是已经渲染好的研究样例。无需等待生成，直接试听游戏情境、音效与配乐；播放其中一项时，其余播放器会暂停。</p>
+    </section>
+    <div class="notice"><span aria-hidden="true">✧</span><p>本页展示本地规则编排与 Web Audio 渲染的成品样例，尚未接入通用 AI 服务。技术检测与主观音质评价分开记录，这些样例不代表音质听审已经通过。</p></div>
+    <section class="grid" aria-label="游戏情境与音效试听">
+      <article class="card featured">
+        <p class="kicker">01 / SOUND IN CONTEXT</p>
+        <h2>海岛钓鱼 · 声音情境</h2>
+        <div class="tag-row"><span class="tag">22 秒</span><span class="tag">配乐 + 事件音效</span><span class="tag warm">脚本化混音</span></div>
+        <p>把配乐与动作反馈放在同一段声音里，观察它们能否共处。这是 22 秒脚本化声音情境，不是实际游戏录像或实时玩法录音。</p>
+        <audio controls preload="metadata" aria-label="海岛钓鱼22秒声音情境"><source src="/artifacts/cozy-game-context.mp3" type="audio/mpeg">浏览器不支持音频播放器，请使用下方链接下载。</audio>
+        <a class="download" href="/artifacts/cozy-game-context.mp3" download>下载这段情境 MP3 ↓</a>
+      </article>
+      <article class="card">
+        <p class="kicker">02 / EVENT PALETTE</p>
+        <h2>十一类事件音效</h2>
+        <div class="tag-row"><span class="tag">短音效串听</span><span class="tag blue">采样 + 程序合成</span></div>
+        <p>按顺序试听：界面、收集、抛投、入水、脚步、命中、激光、蓄力、爆炸、胜利、失败。片段间留有间隔，方便辨识起音与尾音。</p>
+        <audio controls preload="metadata" aria-label="十一类事件音效串听"><source src="/artifacts/sfx-listen.mp3" type="audio/mpeg">浏览器不支持音频播放器，请使用下方链接下载。</audio>
+        <a class="download" href="/artifacts/sfx-listen.mp3" download>下载音效串听 MP3 ↓</a>
+      </article>
+    </section>
+    <div class="section-heading"><h2>以 Kenney 音效为参考，听三种实现。</h2><p>相同的八类事件、相同触发顺序与间隔。先控制响度差异，再比较声音本身。</p></div>
+    <section class="comparison" aria-label="Kenney参考样本、纯合成与混合音效三路比较">
+      <div class="comparison-intro"><strong>事件音效 / 同序三路对照</strong><span>每段 14.4 秒 · 每 1.8 秒一个事件</span></div>
+      <div class="grid sfx-grid">
+        <article class="card">
+          <h2><span class="ab-label">A</span>Kenney 参考样本</h2>
+          <p>经过预处理的 Kenney 样本单独播放，作为本次听感对照的参考。</p>
+          <audio controls preload="metadata" aria-label="音效对照A，预处理Kenney参考样本"><source src="/artifacts/sfx-reference-listen.mp3" type="audio/mpeg">浏览器不支持音频播放器，请使用下方链接下载。</audio>
+          <a class="download" href="/artifacts/sfx-reference-listen.mp3" download>下载 A / 参考样本 MP3 ↓</a>
+        </article>
+        <article class="card">
+          <h2><span class="ab-label">B</span>无采样程序合成</h2>
+          <p>由程序合成这些事件音效，不使用参考采样。比较瞬态、声音主体和尾音。</p>
+          <audio controls preload="metadata" aria-label="音效对照B，无采样程序合成"><source src="/artifacts/sfx-synth-listen.mp3" type="audio/mpeg">浏览器不支持音频播放器，请使用下方链接下载。</audio>
+          <a class="download" href="/artifacts/sfx-synth-listen.mp3" download>下载 B / 纯合成 MP3 ↓</a>
+        </article>
+        <article class="card">
+          <h2><span class="ab-label">C</span>样本 + 程序合成</h2>
+          <p>使用同一参考样本并叠加程序层；脚步当前主要为样本。观察分层处理带来的变化。</p>
+          <audio controls preload="metadata" aria-label="音效对照C，参考样本与程序合成混合"><source src="/artifacts/sfx-hybrid-listen.mp3" type="audio/mpeg">浏览器不支持音频播放器，请使用下方链接下载。</audio>
+          <a class="download" href="/artifacts/sfx-hybrid-listen.mp3" download>下载 C / 混合版 MP3 ↓</a>
+        </article>
+      </div>
+      <div class="comparison-method">
+        <p class="event-order">顺序：界面 → 收集 → 挥动 → 脚步 → 命中 → 激光 → 蓄力 → 爆炸。</p>
+        <p>采用逐事件 FFmpeg EBU R128 测量和常量增益校准；WAV 中同一事件的三版本响度最大差为 0.10 LU，未使用压缩或限制器。这里的 MP3 是试听副本，该数值对应 WAV 分析。</p>
+        <p>混合版使用了参考样本，因此不能由其听感推断纯合成已达到参考样本的品质。技术检查与响度匹配用于辅助公平对比，不能代替听审。</p>
+      </div>
+    </section>
+    <div class="section-heading"><h2>同一段乐谱，两种音源。</h2><p>海岛主题 A/B 使用相同乐谱与 seed 1701，并进行响度匹配。请保持设备音量一致，比较音色和音乐表现。</p></div>
+    <section class="comparison" aria-label="海岛主题同谱音源对比">
+      <div class="comparison-intro"><strong>Sunlit Tides / 海岛钓鱼主题</strong><span>92 BPM · 16 小节 · 同谱 A/B</span></div>
+      <div class="grid">
+        <article class="card">
+          <h2><span class="ab-label">A</span>纯合成配器</h2>
+          <p>主题、键盘、低音和打击乐使用程序合成音色，作为这一轮对比的基线。</p>
+          <audio controls preload="metadata" aria-label="海岛主题A，纯合成配器"><source src="/artifacts/cozy-synth-listen.mp3" type="audio/mpeg">浏览器不支持音频播放器，请使用下方链接下载。</audio>
+          <a class="download" href="/artifacts/cozy-synth-listen.mp3" download>下载 A / 纯合成 MP3 ↓</a>
+        </article>
+        <article class="card">
+          <h2><span class="ab-label">B</span>木琴采样 + 合成配器</h2>
+          <p>主题木琴使用 VSCO 2 CE 采样，其余配器继续合成。试听采样带来的变化，不预设哪一版更好。</p>
+          <audio controls preload="metadata" aria-label="海岛主题B，木琴采样与合成配器"><source src="/artifacts/cozy-hybrid-listen.mp3" type="audio/mpeg">浏览器不支持音频播放器，请使用下方链接下载。</audio>
+          <a class="download" href="/artifacts/cozy-hybrid-listen.mp3" download>下载 B / 木琴采样 + 合成 MP3 ↓</a>
+        </article>
+      </div>
+    </section>
+    <div class="section-heading"><h2>不同游戏，不同声音语言。</h2><p>另外两个有限风格样例，目前 BGM 均使用合成配器。</p></div>
+    <section class="grid" aria-label="霓虹与遗迹配乐试听">
+      <article class="card">
+        <p class="kicker">03 / NEON ACTION</p>
+        <h2>Prism Gate / 霓虹动作</h2>
+        <div class="tag-row"><span class="tag blue">116 BPM</span><span class="tag blue">合成配器</span></div>
+        <p>小调主题、脉冲低音与稳定节拍，检验动作风格的层次、推动力和重复感。</p>
+        <audio controls preload="metadata" aria-label="霓虹动作主题配乐"><source src="/artifacts/neon-listen.mp3" type="audio/mpeg">浏览器不支持音频播放器，请使用下方链接下载。</audio>
+        <a class="download" href="/artifacts/neon-listen.mp3" download>下载霓虹动作 MP3 ↓</a>
+      </article>
+      <article class="card">
+        <p class="kicker">04 / RUINS EXPLORATION</p>
+        <h2>Echoes Under Stone / 遗迹探索</h2>
+        <div class="tag-row"><span class="tag warm">82 BPM</span><span class="tag warm">合成配器</span></div>
+        <p>稀疏钟音、悬置和声与轻微低频脉冲，检验慢节奏探索中的留白与氛围。</p>
+        <audio controls preload="metadata" aria-label="遗迹探索主题配乐"><source src="/artifacts/ruins-listen.mp3" type="audio/mpeg">浏览器不支持音频播放器，请使用下方链接下载。</audio>
+        <a class="download" href="/artifacts/ruins-listen.mp3" download>下载遗迹探索 MP3 ↓</a>
+      </article>
+    </section>
+    <aside class="scope"><h2>这次试听能回答什么</h2><p>这些片段用于比较主题结构、配器、音色与反馈辨识度。请在相同设备音量下听完整段落，留意循环疲劳、突兀起音、尾音和音乐对音效的掩蔽。MP3 是方便试听的衍生文件；技术分析和完整边界见 <a href="/REPORT.md">实验报告</a>。要输入提示词、查看乐谱或触发声音，可返回 <a href="/">交互实验室</a>。</p></aside>
+    <footer><span>GAME AUDIO LAB / 声音生成研究原型</span><span>先试听，再决定下一步的质量目标。</span></footer>
+  </main>
+  <script>
+    for (const player of document.querySelectorAll('audio')) {
+      player.addEventListener('play', () => {
+        for (const other of document.querySelectorAll('audio')) if (other !== player) other.pause();
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11152b">
+  <title>游戏与声音，一起生成 · Game Audio Lab</title>
+  <link rel="stylesheet" href="/src/pipeline.css">
+</head>
+<body>
+  <div class="pipeline-shell">
+    <header class="masthead"><a class="brand" href="/">GAME AUDIO <b>LAB</b></a><nav aria-label="实验导航"><a href="/listen.html">声音样例 ↗</a><a href="/">声音编排实验 ↗</a></nav></header>
+    <main>
+      <section class="intro"><p class="eyebrow">ONE GAME IDEA. TWO TASKS. ONE PLAYABLE RESULT.</p><h1>游戏先跑起来，<br><span>声音随后就位。</span></h1><p>一份游戏设计，同时交给游戏端与声音端。先试玩，再把配乐和音效接入真实的游戏动作。</p></section>
+      <div class="workspace">
+        <section class="panel brief-panel" aria-labelledby="brief-heading">
+          <div class="panel-heading"><span class="step">01 / 共享设计</span><span class="badge">固定示例宿主</span></div>
+          <h2 id="brief-heading">这次，做什么样的世界？</h2>
+          <div class="presets" role="group" aria-label="示例游戏风格"><button type="button" data-profile="cozy" class="selected" aria-pressed="true">海岛拾光 <small>温暖 · 轻盈</small></button><button type="button" data-profile="neon" aria-pressed="false">霓虹穿行 <small>电子 · 动作</small></button></div>
+          <label for="game-prompt">游戏描述</label>
+          <textarea id="game-prompt" rows="4" spellcheck="false"></textarea>
+          <button id="generate" class="primary" type="button" data-testid="pipeline-generate">生成并接入 <span aria-hidden="true">↗</span></button>
+          <p class="scope">本页验证游戏生成管线的声音接入。小游戏使用固定的拾取与碰撞玩法；音乐由本地规则编排器生成，并真实离线渲染。</p>
+          <div class="shared-brief"><div><span>当前共享设计</span><strong id="brief-revision">尚未生成</strong></div><code id="brief-identity">等待建立同一份设计</code></div>
+          <div class="task-list" aria-label="并行任务状态">
+            <article id="game-task" class="task"><span class="task-icon" aria-hidden="true">◇</span><div><h3>游戏端</h3><p id="game-state">等待共享设计</p><small id="game-version">—</small></div><span id="game-timing" class="timing">—</span></article>
+            <article id="audio-task" class="task"><span class="task-icon" aria-hidden="true">♫</span><div><h3>声音端</h3><p id="audio-state">等待共享设计</p><small id="audio-version">—</small></div><span id="audio-timing" class="timing">—</span></article>
+          </div>
+        </section>
+        <section class="panel play-panel" aria-labelledby="play-heading">
+          <div class="panel-heading"><span class="step">02 / 在游戏里验收</span><span id="host-status" class="badge">等待生成</span></div>
+          <h2 id="play-heading">让每个动作，都有回应。</h2>
+          <div class="game-container"><iframe id="game-frame" title="固定示例小游戏，使用方向键或 WASD 移动，收集光点并避开障碍" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe><div id="game-empty" class="game-empty"><span aria-hidden="true">✧</span><p>生成后，小游戏先开始。<br><small>声音制作期间也可以试玩。</small></p></div></div>
+          <div class="controls"><button id="start-audio" class="primary" type="button" data-testid="pipeline-start" disabled>开始有声试玩 <span aria-hidden="true">▶</span></button><button id="pause-audio" class="secondary" type="button" disabled>暂停声音</button><span id="audio-availability">先生成一个声音方案</span></div>
+          <div class="intensity-control"><label for="intensity">场景张力 <small>同步改变音乐层次</small></label><input id="intensity" type="range" min="0" max="1" step="0.05" value="0.35" disabled><output id="intensity-value" for="intensity">35%</output></div>
+          <div class="game-stats"><div><span>已收集</span><strong id="collect-count">0</strong></div><div><span>碰撞</span><strong id="hit-count">0</strong></div><div><span>声音回应</span><strong id="accepted-count">0</strong></div></div>
+          <p id="page-status" class="page-status" role="status" aria-live="polite" aria-atomic="true">选择世界，生成同一版本的游戏与声音。</p>
+          <div class="outcome-note"><span aria-hidden="true">↗</span><p>声音尚未就位或生成失败时，游戏仍可继续。准备完成后点击「开始有声试玩」，由真实点击开启浏览器声音。</p></div>
+        </section>
+      </div>
+      <section class="handoff-strip" aria-label="声音接入流程"><div><span>同一份设计</span><p>游戏与声音识别同一版本</p></div><span aria-hidden="true">→</span><div><span>游戏先可玩</span><p>等待声音不会卡住玩法</p></div><span aria-hidden="true">→</span><div><span>按动作发声</span><p>拾取、受击、确认共用事件约定</p></div></section>
+      <details class="developer-panel"><summary>查看接入记录与开发者数据 <span>设计版本 · 事件路由 · 真实耗时</span></summary><div class="developer-content"><p>固定小游戏在无同源权限的 iframe 中运行，不请求音频资源。可信宿主通过消息通道接收语义事件，再交给声音适配器。以下仅记录本次演示。</p><div class="developer-columns"><div><h3>共享设计与声音计划</h3><pre id="plan-details">尚未生成</pre></div><div><h3>游戏事件 → 声音回应</h3><ol id="event-log" class="event-log" aria-label="最近游戏事件"><li class="empty">开始试玩后，这里会记录真实事件。</li></ol></div></div></div></details>
+      <p class="export-note">资源包导出接口仍在研究中；本演示只验证计划生成、浏览器渲染与游戏运行时接入。</p>
+    </main>
+    <footer><span>GAME AUDIO LAB / 从共享设计到游戏声音</span><span>音质仍需结合实际试听评价。</span></footer>
+  </div>
+  <script src="/vendor/Tone.js"></script>
+  <script type="module" src="/src/pipeline-demo.mjs"></script>
+</body>
+</html>

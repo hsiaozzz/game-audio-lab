@@ -1,0 +1,405 @@
+{
+  "kind": "matched-event-sfx-comparison",
+  "brief": {
+    "title": "Sunlit Tides",
+    "style": "cozy",
+    "bpm": 92,
+    "rootMidi": 62,
+    "mode": "major",
+    "instruments": [
+      "marimba",
+      "softKeys",
+      "bass",
+      "kick",
+      "shaker",
+      "fmBell"
+    ],
+    "description": "Warm mallet theme, soft keys, gently syncopated bass and brushed island percussion.",
+    "sceneStates": [
+      "menu",
+      "exploration",
+      "fishing",
+      "reward"
+    ],
+    "eventBindings": {
+      "ui.confirm": "ui",
+      "world.step": "step",
+      "fishing.cast": "cast",
+      "fishing.bite": "alert",
+      "item.collect": "collect",
+      "player.hit": "hit",
+      "game.victory": "victory",
+      "game.failure": "failure"
+    },
+    "id": "cozy-26f6ce88",
+    "prompt": "做一个温暖的海岛钓鱼游戏，午后的阳光、轻柔的海浪，收获鱼儿时有愉快的奖励反馈。",
+    "meter": 4,
+    "bars": 16,
+    "seed": 653708936,
+    "director": {
+      "kind": "local-rule-based-research-prototype",
+      "supportedProfiles": [
+        "cozy",
+        "neon",
+        "ruins"
+      ],
+      "matched": true,
+      "limitation": "Keyword profile routing plus seeded composition; not an arbitrary-prompt AI music model."
+    }
+  },
+  "spacingSeconds": 1.8,
+  "onsetSeconds": 0.2,
+  "ids": [
+    "ui",
+    "collect",
+    "cast",
+    "footstep",
+    "hit",
+    "laser",
+    "charge",
+    "explosion"
+  ],
+  "reels": {
+    "synth": {
+      "events": [
+        {
+          "id": "ui",
+          "time": 0.2,
+          "segmentStart": 0,
+          "segmentEnd": 1.8,
+          "duration": 0.5,
+          "source": "procedural-only",
+          "components": [
+            "procedural"
+          ]
+        },
+        {
+          "id": "collect",
+          "time": 2,
+          "segmentStart": 1.8,
+          "segmentEnd": 3.6,
+          "duration": 0.5,
+          "source": "procedural-only",
+          "components": [
+            "procedural"
+          ]
+        },
+        {
+          "id": "cast",
+          "time": 3.8000000000000003,
+          "segmentStart": 3.6,
+          "segmentEnd": 5.4,
+          "duration": 0.5,
+          "source": "procedural-only",
+          "components": [
+            "procedural"
+          ]
+        },
+        {
+          "id": "footstep",
+          "time": 5.6000000000000005,
+          "segmentStart": 5.4,
+          "segmentEnd": 7.2,
+          "duration": 0.5,
+          "source": "procedural-only",
+          "components": [
+            "procedural"
+          ]
+        },
+        {
+          "id": "hit",
+          "time": 7.4,
+          "segmentStart": 7.2,
+          "segmentEnd": 9,
+          "duration": 0.5,
+          "source": "procedural-only",
+          "components": [
+            "procedural"
+          ]
+        },
+        {
+          "id": "laser",
+          "time": 9.2,
+          "segmentStart": 9,
+          "segmentEnd": 10.8,
+          "duration": 0.5,
+          "source": "procedural-only",
+          "components": [
+            "procedural"
+          ]
+        },
+        {
+          "id": "charge",
+          "time": 11,
+          "segmentStart": 10.8,
+          "segmentEnd": 12.6,
+          "duration": 0.7,
+          "source": "procedural-only",
+          "components": [
+            "procedural"
+          ]
+        },
+        {
+          "id": "explosion",
+          "time": 12.799999999999999,
+          "segmentStart": 12.6,
+          "segmentEnd": 14.4,
+          "duration": 1.15,
+          "source": "procedural-only",
+          "components": [
+            "procedural"
+          ]
+        }
+      ],
+      "stats": {
+        "sampleRate": 44100,
+        "channels": 2,
+        "durationSeconds": 14.8,
+        "pcmBytes": 5221440,
+        "peak": 0.34001344442367554,
+        "peakDbFS": -9.370078204826852,
+        "rms": 0.012309000701039262,
+        "rmsDbFS": -38.195544071577665,
+        "nonfinite": 0,
+        "clippedSamples": 0,
+        "loopBoundaryJump": 0
+      },
+      "normalization": "none; raw output for level-matched comparison"
+    },
+    "reference": {
+      "events": [
+        {
+          "id": "ui",
+          "time": 0.2,
+          "segmentStart": 0,
+          "segmentEnd": 1.8,
+          "duration": 0.09612244897959184,
+          "source": "reference-sample-only",
+          "components": [
+            "sample"
+          ],
+          "sourceFile": "click_001.ogg",
+          "sourcePack": "interface-sounds"
+        },
+        {
+          "id": "collect",
+          "time": 2,
+          "segmentStart": 1.8,
+          "segmentEnd": 3.6,
+          "duration": 0.31746031746031744,
+          "source": "reference-sample-only",
+          "components": [
+            "sample"
+          ],
+          "sourceFile": "confirmation_003.ogg",
+          "sourcePack": "interface-sounds"
+        },
+        {
+          "id": "cast",
+          "time": 3.8000000000000003,
+          "segmentStart": 3.6,
+          "segmentEnd": 5.4,
+          "duration": 0.39312925170068025,
+          "source": "reference-sample-only",
+          "components": [
+            "sample"
+          ],
+          "sourceFile": "knifeSlice.ogg",
+          "sourcePack": "rpg-audio"
+        },
+        {
+          "id": "footstep",
+          "time": 5.6000000000000005,
+          "segmentStart": 5.4,
+          "segmentEnd": 7.2,
+          "duration": 0.773673469387755,
+          "source": "reference-sample-only",
+          "components": [
+            "sample"
+          ],
+          "sourceFile": "footstep_grass_000.ogg",
+          "sourcePack": "impact-sounds"
+        },
+        {
+          "id": "hit",
+          "time": 7.4,
+          "segmentStart": 7.2,
+          "segmentEnd": 9,
+          "duration": 0.32877551020408163,
+          "source": "reference-sample-only",
+          "components": [
+            "sample"
+          ],
+          "sourceFile": "impactWood_medium_000.ogg",
+          "sourcePack": "impact-sounds"
+        },
+        {
+          "id": "laser",
+          "time": 9.2,
+          "segmentStart": 9,
+          "segmentEnd": 10.8,
+          "duration": 0.23530612244897958,
+          "source": "reference-sample-only",
+          "components": [
+            "sample"
+          ],
+          "sourceFile": "laserSmall_000.ogg",
+          "sourcePack": "sci-fi-sounds"
+        },
+        {
+          "id": "charge",
+          "time": 11,
+          "segmentStart": 10.8,
+          "segmentEnd": 12.6,
+          "duration": 0.8709750566893424,
+          "source": "reference-sample-only",
+          "components": [
+            "sample"
+          ],
+          "sourceFile": "forceField_000.ogg",
+          "sourcePack": "sci-fi-sounds"
+        },
+        {
+          "id": "explosion",
+          "time": 12.799999999999999,
+          "segmentStart": 12.6,
+          "segmentEnd": 14.4,
+          "duration": 0.7764625850340136,
+          "source": "reference-sample-only",
+          "components": [
+            "sample"
+          ],
+          "sourceFile": "explosionCrunch_000.ogg",
+          "sourcePack": "sci-fi-sounds"
+        }
+      ],
+      "stats": {
+        "sampleRate": 44100,
+        "channels": 2,
+        "durationSeconds": 14.8,
+        "pcmBytes": 5221440,
+        "peak": 0.90252685546875,
+        "peakDbFS": -0.8907973284270027,
+        "rms": 0.08863790480051244,
+        "rmsDbFS": -21.04761036466179,
+        "nonfinite": 0,
+        "clippedSamples": 0,
+        "loopBoundaryJump": 0
+      },
+      "normalization": "none; raw output for level-matched comparison"
+    },
+    "hybrid": {
+      "events": [
+        {
+          "id": "ui",
+          "time": 0.2,
+          "segmentStart": 0,
+          "segmentEnd": 1.8,
+          "duration": 0.5,
+          "source": "sample+procedural",
+          "components": [
+            "sample",
+            "procedural"
+          ]
+        },
+        {
+          "id": "collect",
+          "time": 2,
+          "segmentStart": 1.8,
+          "segmentEnd": 3.6,
+          "duration": 0.5,
+          "source": "sample+procedural",
+          "components": [
+            "sample",
+            "procedural"
+          ]
+        },
+        {
+          "id": "cast",
+          "time": 3.8000000000000003,
+          "segmentStart": 3.6,
+          "segmentEnd": 5.4,
+          "duration": 0.5032094790640176,
+          "source": "sample+procedural",
+          "components": [
+            "sample",
+            "procedural"
+          ]
+        },
+        {
+          "id": "footstep",
+          "time": 5.6000000000000005,
+          "segmentStart": 5.4,
+          "segmentEnd": 7.2,
+          "duration": 0.8935112312502287,
+          "source": "sample-only-hybrid-path",
+          "components": [
+            "sample"
+          ]
+        },
+        {
+          "id": "hit",
+          "time": 7.4,
+          "segmentStart": 7.2,
+          "segmentEnd": 9,
+          "duration": 0.5,
+          "source": "sample+procedural",
+          "components": [
+            "sample",
+            "procedural"
+          ]
+        },
+        {
+          "id": "laser",
+          "time": 9.2,
+          "segmentStart": 9,
+          "segmentEnd": 10.8,
+          "duration": 0.5,
+          "source": "sample+procedural",
+          "components": [
+            "sample",
+            "procedural"
+          ]
+        },
+        {
+          "id": "charge",
+          "time": 11,
+          "segmentStart": 10.8,
+          "segmentEnd": 12.6,
+          "duration": 0.993307728606386,
+          "source": "sample+procedural",
+          "components": [
+            "sample",
+            "procedural"
+          ]
+        },
+        {
+          "id": "explosion",
+          "time": 12.799999999999999,
+          "segmentStart": 12.6,
+          "segmentEnd": 14.4,
+          "duration": 1.15,
+          "source": "sample+procedural",
+          "components": [
+            "sample",
+            "procedural"
+          ]
+        }
+      ],
+      "stats": {
+        "sampleRate": 44100,
+        "channels": 2,
+        "durationSeconds": 14.8,
+        "pcmBytes": 5221440,
+        "peak": 0.3331223428249359,
+        "peakDbFS": -9.54792475595337,
+        "rms": 0.017966441000519924,
+        "rmsDbFS": -34.9107588884445,
+        "nonfinite": 0,
+        "clippedSamples": 0,
+        "loopBoundaryJump": 0
+      },
+      "normalization": "none; raw output for level-matched comparison"
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-16T07:01:47.522Z",
+  "purpose": "Persist already completed lightweight engine edge-case checks; no tests rerun to create this file.",
+  "engine": "src/audio-engine.mjs",
+  "provenance": {
+    "execution": "Dedicated headless Chromium Web Audio harness launched through Playwright; did not attach to the user browser.",
+    "origin": "http://127.0.0.1:4178",
+    "script": null,
+    "scriptPersistence": "Edge checks were ephemeral JavaScript piped through PowerShell stdin to Node --input-type=module. There is no saved edge-check script path.",
+    "relatedHarness": "scripts/headless-probe.mjs",
+    "relatedHarnessNote": "Reusable harness reference only; this file was not the exact script used for these edge checks.",
+    "resultSource": "Previously observed console results from this agent session. The first three checks were retained in the conversation summary; the minor-third DFT values are copied from the full observed console output.",
+    "rerunForPersistence": false,
+    "testedAt": null,
+    "testedAtNote": "Exact execution timestamps were not captured in those ephemeral outputs.",
+    "limitations": "Technical and signal checks only. These results do not establish subjective audio quality."
+  },
+  "pass": true,
+  "checks": {
+    "unknownInstrumentRecovery": {
+      "pass": true,
+      "triggerInstrument": "invalid-probe-instrument",
+      "observedError": "Unknown instrument: invalid-probe-instrument",
+      "contextRestoredAfterFailure": true,
+      "recoveryRender": {
+        "durationSeconds": 0.08,
+        "pass": true,
+        "nonfinite": 0,
+        "peakApprox": 0.1319,
+        "peakNote": "Approximate value retained from the earlier test summary; the full numeric console output was not persisted."
+      },
+      "contextRestoredAfterSuccess": true
+    },
+    "nonloopNaturalEnd": {
+      "pass": true,
+      "bufferDurationSeconds": 0.09,
+      "loop": false,
+      "observedAfterMilliseconds": 180,
+      "state": {
+        "playing": false,
+        "activeSources": 0,
+        "position": 0.09
+      },
+      "additionalObservation": "Pause/resume state transitions also passed in the same lightweight runtime probe."
+    },
+    "chargeVoiceLifetime": {
+      "pass": true,
+      "observations": [
+        {
+          "elapsedMilliseconds": 0,
+          "activeVoices": 1
+        },
+        {
+          "elapsedMilliseconds": 800,
+          "activeVoices": 1
+        },
+        {
+          "elapsedMilliseconds": 1050,
+          "activeVoices": 0
+        }
+      ],
+      "purpose": "Confirms that the prepared charge sample is not prematurely disconnected at 700 ms."
+    },
+    "minorVictoryThird": {
+      "pass": true,
+      "brief": {
+        "rootMidi": 66,
+        "mode": "minor"
+      },
+      "method": "Hann-windowed single-frequency DFT magnitudes on channel 0 of renderSfxReel output.",
+      "sampleRate": 44100,
+      "segmentStartSeconds": 14.8,
+      "segmentDurationSeconds": 0.05,
+      "expectedFrequencyHz": 440,
+      "incorrectMajorThirdFrequencyHz": 466.1637615,
+      "expectedA4Magnitude": 0.8615940031301581,
+      "incorrectASharp4Magnitude": 0.2608802945743627,
+      "magnitudeRatio": 3.30264117700375,
+      "acceptanceCriterion": "Expected 440 Hz magnitude exceeds the incorrect 466.16 Hz magnitude by at least a factor of 1.4."
+    }
+  }
+}
