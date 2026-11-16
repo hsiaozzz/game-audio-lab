@@ -11,6 +11,8 @@
 本轮新增了本地 plan API、合同 adapter 和 opaque iframe 宿主演示；它们的当前字段、
 实际接入点与实现边界见 [GAME-PIPELINE-INTEGRATION](GAME-PIPELINE-INTEGRATION.md)
 及 `src/game-audio-pipeline.mjs`，不应将下方完整音频包草案当作现有 API。
+当前调用示例与未来确认后按需交付协议见 [API-INTERACTION](API-INTERACTION.md)；
+它明确区分已实现的 `/api/audio/*` 与尚未实现的 `/v1/audio/*`。
 
 ## 共享设计先于两个生成任务
 
@@ -19,7 +21,8 @@ flowchart LR
     P[用户提示词] --> D[共享 GameBrief 与事件合同]
     D --> G[游戏生成任务]
     D --> A[音频导演与作曲任务]
-    A --> R[声音渲染与音频包]
+    A --> C[宿主自动确认合同并选定交付项]
+    C --> R[按需渲染与音频包交付]
     G --> J[按版本合并与绑定验收]
     R --> J
     J --> O[可玩的游戏与完整声音]
@@ -28,6 +31,15 @@ flowchart LR
 游戏生成器和音频生成器不能各自猜测事件名称或世界设定。两者读取同一份有版本的
 GameBrief；场景状态、动作含义和声音触发合同先形成，再并行产出游戏代码与声音。
 AI 可以扩展事件提案，只有通过校验的最终合同才进入编译。
+
+声音服务与宿主按两阶段合作：先规划并返回候选声音及可交付项，宿主自动核对共享
+身份、required 事件与预算，选定实际需要的 items 后才触发渲染和交付。确认是程序
+校验，不要求用户逐个批准音效。未来协议为 `POST /v1/audio/plans` 后提交
+`POST /v1/audio/jobs`，再查询 job 与不可变 package manifest；这些端点目前未实现。
+
+交付完成后，游戏运行时使用本地 adapter 播放已获得的资源、分轨与声音事件，不把
+每次游戏操作送去实时生成。当前原型在浏览器完成渲染，已有 plan API 和宿主桥；
+按 `acceptedItems` 选择的后台媒体交付仍是后续能力。
 
 GameBrief 示例：
 

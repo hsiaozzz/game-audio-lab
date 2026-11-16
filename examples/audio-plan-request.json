@@ -1,0 +1,28 @@
+{
+  "gameBrief": {
+    "schemaVersion": 1,
+    "projectId": "island-collect-demo",
+    "revision": 1,
+    "prompt": "温暖海岛上的收集游戏，轻柔的木琴配乐，拾取物品时有清楚悦耳的反馈"
+  },
+  "eventContract": {
+    "schemaVersion": 1,
+    "version": 1,
+    "sceneStates": ["menu", "exploration", "result"],
+    "events": [
+      {
+        "id": "item.collect",
+        "cue": "collect",
+        "required": true,
+        "maxRatePerSecond": 6
+      },
+      {
+        "id": "player.hit",
+        "cue": "hit",
+        "required": false,
+        "maxRatePerSecond": 3
+      }
+    ]
+  },
+  "options": { "seed": 1701 }
+}

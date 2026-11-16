@@ -23,6 +23,11 @@ neon 实测中，固定小游戏 0.02 秒可玩，三层声音约 23.07 秒就�
 [游戏生成管线接入](docs/GAME-PIPELINE-INTEGRATION.md)。旧游戏项目没有改动，独立
 后台渲染队列与可脱离宿主的完整音频包导出仍待实现。
 
+具体请求、响应与宿主调用顺序见 [接口交互协议](docs/API-INTERACTION.md)。后续合作
+采用两阶段：先返回声音方案，宿主自动核对共享合同与版本、选定所需交付项，再提交
+渲染任务；游戏运行时播放已交付的本地音频，不在每次动作时调用生成服务。
+这套按需交付协议仍是未来设计，当前已实现的是本地 plan API、adapter 与 iframe 桥。
+
 ## 先听成品
 
 要隐藏来源评选，打开 **http://127.0.0.1:4178/blind.html**：八组同类事件、随机顺序、
@@ -36,7 +41,7 @@ neon 实测中，固定小游戏 0.02 秒可玩，三层声音约 23.07 秒就�
 - [海岛纯合成 BGM](artifacts/cozy-synth-listen.mp3) / [海岛采样木琴 BGM](artifacts/cozy-hybrid-listen.mp3)：相同乐谱，seed 1701，均约 −22 LUFS。
 - [霓虹动作 BGM](artifacts/neon-listen.mp3) / [遗迹探索 BGM](artifacts/ruins-listen.mp3)。
 
-[实验结论](REPORT.md) · [Kenney 对照分析](docs/KENNEY-BENCHMARK.md) · [未来管线合同](docs/PIPELINE-CONTRACT.md)
+[实验结论](REPORT.md) · [接口交互](docs/API-INTERACTION.md) · [Kenney 对照分析](docs/KENNEY-BENCHMARK.md) · [未来管线合同](docs/PIPELINE-CONTRACT.md)
 
 技术检查通过不等于音乐已经达到成品听感。三路音效的混合版直接使用参考素材；它不能
 证明纯合成已经达到 Kenney 的水平。场景混音是脚本化试听，没有声称来自完整游戏录像。
