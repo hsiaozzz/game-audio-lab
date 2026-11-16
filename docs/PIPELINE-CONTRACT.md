@@ -133,10 +133,11 @@ GameBrief 示例：
 
 ## 输出 AudioPackage
 
-独立音频包应该同时支持试听、动态运行和后续编辑。只给一个 `mix.wav` 无法保留
+独立音频包应该同时支持试听、动态运行和后续编辑。只给一个 `mix.ogg` 无法保留
 场景动态层、事件含义、谱面或可重现信息。
 
-建议目录：
+以下是未来媒体包的可选目录布局，实际媒体打包尚未实现。只交付宿主确认选中的
+items；mix、stems、cues 不要求全部生成或打包。
 
 ```text
 audio-package/
@@ -147,16 +148,16 @@ audio-package/
   score.json
   event-bindings.json
   music/
-    preview.wav
-    stems/core.wav
-    stems/texture.wav
-    stems/rhythm.wav
-    cues/victory.wav
-    cues/failure.wav
+    preview.ogg
+    stems/core.ogg
+    stems/texture.ogg
+    stems/rhythm.ogg
+    cues/victory.ogg
+    cues/failure.ogg
   sfx/
-    cast-01.wav
-    bite-01.wav
-    collect-01.wav
+    cast-01.ogg
+    bite-01.ogg
+    collect-01.ogg
   runtime/
     version.json
   provenance/
@@ -168,8 +169,15 @@ audio-package/
 
 混合试听不一定等同运行时实际动态混音。manifest 应明确 stem 的增益、循环起止点、
 样本率、同步方式与动态规则，避免把所有分轨直接相加而改变混音。
-首次研究交付可以先使用 WAV；正式游戏产物按浏览器和资源预算选择编码，同时记录
-编码器及版本。压缩后文件变小，解码为 PCM 后的内存仍需单独计算。
+后续媒体交付默认使用 **Opus + Ogg 容器（`.ogg`）**，交付采样率为 **48 kHz**，
+MIME 为 `audio/ogg; codecs=opus`。BGM 默认立体声 64 kbps VBR，复杂配器或高质量档
+为 96 kbps VBR；SFX 默认单声道 48 kbps VBR，32 kbps VBR 仅作为需试听批准的紧凑档。
+宿主根据实际播放/解码能力选择默认格式或 AAC-LC/M4A 回退，每个交付项只交付一种
+选定格式，不默认同时打包两套。回退时记录实际 MIME、codec、采样率与编码器版本。
+
+WAV 保留作研究或母版，不作为正式媒体交付默认；现有 WAV/MP3 研究产物与原来的
+44.1 kHz 实测记录保持不变。压缩后文件变小，解码为 PCM 后的内存仍需单独计算。
+格式选择与协商详见 [默认媒体输出格式](API-INTERACTION.md#默认媒体输出格式)。
 
 manifest 的关键字段：
 
@@ -184,14 +192,16 @@ manifest 的关键字段：
   "compilerVersion": "0.1.0",
   "soundBankVersion": "0.1.0",
   "seed": 1407,
-  "sampleRate": 44100,
-  "music": { "bpm": 92, "meter": 4, "bars": 16, "stems": ["core", "texture", "rhythm"] },
-  "files": [{ "path": "music/preview.wav", "sha256": "file-digest", "bytes": 0 }],
+  "sampleRate": 48000,
+  "music": { "bpm": 92, "meter": 4, "bars": 16, "stems": [] },
+  "files": [{ "path": "music/preview.ogg", "mimeType": "audio/ogg; codecs=opus", "container": "ogg", "codec": "opus", "sampleRate": 48000, "channels": 2, "bitrateKbps": 64, "bitrateMode": "vbr", "sha256": "file-digest", "bytes": 0 }],
   "qualityStatus": "technical-pass-listening-pending"
 }
 ```
 
 路径、摘要和 bytes 必须由打包器依据真实产物生成，不能从模型输出直接信任。
+上例是尚未实现的媒体 manifest 草案，`bytes: 0` 和摘要为占位，不能当作现有产物；
+`music.stems` 也仅在选中分轨交付时列出实际提供的分轨。
 音色内容许可与代码依赖许可分别保存。相同谱面、音色、编译器和采样率可命中缓存；
 跨浏览器 DSP 输出不保证逐位相同，因此缓存也要记录渲染配置。
 

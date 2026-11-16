@@ -1,0 +1,40 @@
+{
+  "status": "proposed-not-implemented",
+  "profile": "compact-opus-v1",
+  "selection": "one-format-per-item",
+  "formats": [
+    {
+      "id": "opus-ogg",
+      "container": "ogg",
+      "codec": "opus",
+      "extension": ".ogg",
+      "mimeType": "audio/ogg; codecs=\"opus\"",
+      "sampleRate": 48000,
+      "music": {
+        "channels": 2,
+        "rateControl": "vbr",
+        "targetBitrateKbps": 64,
+        "highQualityBitrateKbps": 96
+      },
+      "sfx": {
+        "channels": 1,
+        "rateControl": "vbr",
+        "targetBitrateKbps": 48,
+        "compactBitrateKbps": 32,
+        "compactRequiresListeningApproval": true
+      }
+    },
+    {
+      "id": "aac-lc-m4a",
+      "container": "mp4",
+      "codec": "aac-lc",
+      "extension": ".m4a",
+      "mimeType": "audio/mp4; codecs=\"mp4a.40.2\"",
+      "sampleRate": 48000,
+      "music": { "channels": 2, "targetBitrateKbps": 96 },
+      "sfx": { "channels": 1, "targetBitrateKbps": 64 }
+    }
+  ],
+  "transport": "binary-files-with-json-metadata",
+  "master": "retain-wav-pcm-in-production-storage"
+}

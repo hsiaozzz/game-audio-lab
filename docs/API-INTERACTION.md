@@ -204,6 +204,63 @@ await window.GameAudio.setIntensity(0.7);
 它们尚未实现在服务器中。下面的 `example-*` ID 是示意值，真正摘要必须根据规范化
 输入和实际产物计算。新增版本接口时不改变当前原型响应的含义。
 
+### 默认媒体输出格式
+
+正式媒体交付默认使用 **Opus 编码、Ogg 容器、`.ogg` 扩展名**，配置档为
+`compact-opus-v1`。OGG 是容器，不能只按扩展名推断里面的编码。完整机器可读约定见
+[audio-delivery-defaults.json](../examples/audio-delivery-defaults.json)，其
+`status: "proposed-not-implemented"` 表示当前只是后续打包器的默认合同。
+现有浏览器渲染仍输出 PCM/WAV，当前服务没有因此新增 Opus 编码或后台交付功能。
+
+| 用途 | 默认输出 | 需要时调整 |
+|---|---|---|
+| BGM mix / 所选音乐分轨 | Opus/Ogg、48 kHz、立体声、64 kbps VBR | 复杂配乐或试听不达标用 96 kbps；分轨按实际需要分别定预算 |
+| 拾取、按钮等短 SFX | Opus/Ogg、48 kHz、单声道、48 kbps VBR | 32 kbps 为经试听验收的紧凑档；需要原生立体声的效果须另行声明 |
+| Opus/Ogg 无法在目标设备解码 | AAC-LC/M4A、48 kHz；BGM 立体声 96 kbps，SFX 单声道 64 kbps | MIME 为 `audio/mp4; codecs="mp4a.40.2"`，仍需真实解码验证 |
+| 制作母版 | 生产存储保留 PCM/WAV | 用于编辑与重新编码，不默认下发给游戏 |
+
+码率是编码目标，不是实际文件大小或质量保证。VBR 会随内容变化；分轨数、时长、
+音色和循环尾音同样影响交付体积。先按上述档位制作，再做响度匹配试听与循环验收；
+预算不够时先减少不需要的声音、变体与分轨，不能把无限降低码率当作音质已通过。
+
+宿主提交按优先级排列的 `acceptedFormats`，依据实际播放器的能力选择。可以用
+`canPlayType()` 做初筛，再用完整的小型同格式探针或目标文件执行
+`decodeAudioData()` 验证。确认计划中每个 item 的实际格式，并**每个 item 只下发一份
+选中的格式**，避免把 Opus、AAC 和母版全部塞入游戏。意外解码失败时创建新计划与
+新 job；新计划仍包含完整逻辑需求及全部必需项，在 `delivery.formatOverrides` 中
+把受影响 item 固定为 `aac-lc-m4a`，其他项沿用原格式并引用已验证缓存。新的
+plan/selection/package 摘要重新计算，宿主保留已缓存资源，仅下载回退项，不暗中
+修改已确认媒体包。formatOverrides 只能选择 acceptedFormats 中允许的格式。
+
+Safari 的 Ogg Opus 支持与系统版本有关：WebKit 在 Safari 18.4 中加入此能力，但
+要求 macOS Sequoia 15.4 / iOS、iPadOS 18.4 / visionOS 2.4 对应系统；不能只检查
+浏览器名称就保证兼容。使用本机探测决定是否选择 AAC，当前 Windows 浏览器的成功
+解码结果也不能替代 Safari 验证。
+
+API 的 JSON 只返回身份、格式、时长、体积、摘要及资源地址，音频使用二进制资源
+下载与缓存。Base64 比原始字节约多三分之一，不作为在线交付默认。压缩降低的是
+存储和传输体积，解码后的 Float32 PCM 仍约为 `帧数 × 声道数 × 4` 字节。
+
+manifest 的每个文件还应记录容器、codec、采样率、实际帧数、编码器/版本与延迟裁剪
+信息。BGM 保留循环起止帧和参考采样率；宿主重采样后换算播放时间，检查短音效起音、
+尾音和循环接缝。Opus/AAC/MP3 都不能仅凭格式名称宣称无缝，禁止从已有 MP3 再转码
+作为新母版。
+
+本机 2026-11-16 的一次体积实验如下（十进制 KB）：
+
+| 素材 | PCM16 WAV | 默认 Opus | 对照 |
+|---|---:|---:|---:|
+| 41.74 秒海岛 BGM | 7,362.8 KB | 399.0 KB，64 kbps VBR | MP3 128 kbps：668.8 KB |
+| 0.317 秒拾取音效 | 28.1 KB | 2.7 KB，单声道 48 kbps VBR | MP3 单声道 64 kbps：3.2 KB |
+
+两首 BGM、三种短音效共 19 个编码候选通过了 FFmpeg 及本机 Chromium Web Audio
+解码检查。以上不是等听感对照，不表示已经完成压缩音质盲听或跨设备认证；原始实验
+输入与候选文件保留在研究机器，不随游戏或仓库默认分发。
+
+参考：[WebKit Safari 18.4](https://webkit.org/blog/16574/webkit-features-in-safari-18-4/)、
+[MDN decodeAudioData](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/decodeAudioData)、
+[Ogg Opus 的 pre-skip 与末端裁剪](https://www.rfc-editor.org/rfc/rfc7845.html#section-4.2)。
+
 ```mermaid
 sequenceDiagram
   participant H as 游戏宿主/生成协调器
@@ -253,9 +310,9 @@ sequenceDiagram
     }
   ],
   "delivery": {
-    "mimeTypes": ["audio/wav"],
-    "sampleRate": 44100,
-    "channels": 2,
+    "profile": "compact-opus-v1",
+    "acceptedFormats": ["opus-ogg", "aac-lc-m4a"],
+    "selection": "one-format-per-item",
     "maxTransferBytes": 12582912,
     "maxDecodedPcmBytes": 67108864
   }
@@ -264,6 +321,9 @@ sequenceDiagram
 
 上例是未来请求的增补字段，不是提交到当前 `/api/audio/plan` 的新功能。
 服务按能力判断是否支持；不能静默忽略音乐风格、音乐槽或资源限制后报告成功。
+`profile` 引用上方默认配置；`acceptedFormats` 是宿主实际可用且允许服务选择的格式，
+只支持 AAC 的宿主仅传 `["aac-lc-m4a"]`。服务在每个返回 item 中固定实际选中的
+`formatId` 与采样率、声道和码率，宿主确认这些具体参数后才提交任务。
 
 未来成功响应为 `{plan}`，包含 `status:"awaiting-confirmation"`、共享 `identity`、
 不可变 `planId/planDigest`、`items`、`delivery` 与编译器/音源版本。
@@ -301,9 +361,9 @@ sequenceDiagram
   },
   "acceptedItems": ["sfx.item.collect", "bgm.exploration"],
   "delivery": {
-    "mimeTypes": ["audio/wav"],
-    "sampleRate": 44100,
-    "channels": 2,
+    "profile": "compact-opus-v1",
+    "acceptedFormats": ["opus-ogg", "aac-lc-m4a"],
+    "selection": "one-format-per-item",
     "maxTransferBytes": 12582912,
     "maxDecodedPcmBytes": 67108864
   }
@@ -369,14 +429,17 @@ type MediaManifest = {
   selectionDigest: string;
   files: Array<{
     id: string; path: string; sha256: string; bytes: number; mimeType: string;
+    formatId: string; container: string; codec: string;
+    encoding: { encoder: string; version: string; targetBitrateKbps: number };
     sampleRate: number; channels: number; frames: number;
+    trim?: { referenceSampleRate: number; encoderDelayFrames: number; paddingFrames: number };
     decodedPcmBytes: number; // Float32 预计占用，实际解码后也要核对
   }>;
   sfx: Record<string, { eventId: string; variants: string[] }>; // 资源 file ID
   music: Record<string, {
     scene: string; mixFileId?: string; stemFileIds?: string[];
     gainDb: number; stemGainDb?: Record<string, number>;
-    loop: { enabled: boolean; startFrame: number; endFrame: number };
+    loop: { enabled: boolean; referenceSampleRate: number; startFrame: number; endFrame: number };
   }>;
   provenance: { licensesPath: string; assetsPath: string };
   quality: { technical: string; binding: string; listening: string };
@@ -384,7 +447,9 @@ type MediaManifest = {
 ```
 
 `sfx`、`music` 的 key 分别是确认的 `sfx.item.collect` 和 `bgm.exploration` 等 ID。
-循环区间采用声明采样率下的帧索引，`endFrame` 为不包含的末端；分轨必须采样率、
+`frames` 与循环索引均指裁剪后的有效 PCM，循环以 `referenceSampleRate` 为基准，
+`endFrame` 为不包含的末端。trim 记录编码端的延迟/填充，用于核对实际解码长度；
+解码器已经应用裁剪时不得重复裁剪。分轨必须采样率、
 长度及起点同步，并按声明增益混合，避免把 mix 和全部分轨同时叠加。输出单 mix
 时不需要捎带分轨；有动态分层需求时才在计划中确认分轨交付与更高的 PCM 预算。
 
