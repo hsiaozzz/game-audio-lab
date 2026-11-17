@@ -17,8 +17,7 @@ npm start
 
 Linux 可用 `npx playwright install --with-deps chromium` 安装系统依赖。FFmpeg/ffprobe 放 PATH，或设置 GAME_AUDIO_FFMPEG/GAME_AUDIO_FFPROBE。默认监听 `http://127.0.0.1:4178`，环境项见 [.env.example](.env.example)；`.env` 不会被 npm start 自动读取，Node 20.6+ 可用 `node --env-file=.env scripts/server.mjs`。
 
-打开 **http://127.0.0.1:4178/delivery.html**  
-建立方案、选择所需声音并确认制作，媒体下载/校验/解码后点击开启声音。小游戏可先玩，短 SFX 可先于 BGM 就绪；全部播放在本地缓冲执行。可选择 mix 或三层动态分轨，导出声音 ZIP 后在静态 HTTP 下脱离生成服务运行。
+打开 **http://127.0.0.1:4178/delivery.html**  建立方案、选择所需声音并确认制作，媒体下载/校验/解码后点击开启声音。小游戏可先玩，短 SFX 可先于 BGM 就绪；全部播放在本地缓冲执行。可选择 mix 或三层动态分轨，导出声音 ZIP 后在静态 HTTP 下脱离生成服务运行。
 
 `npm run doctor` 检查存储、浏览器安装与媒体工具；health 的 renderer.ready 和实际 service:e2e 才分别覆盖运行前依赖与真实渲染链路。首次 BGM 仍需离线制作，不是即时推理。改变端口用 GAME_AUDIO_PORT；非 loopback 部署必须配置服务 token，部署步骤见 [HANDOFF](docs/HANDOFF.md)。
 
@@ -60,7 +59,7 @@ Dockerfile 包含 Node、FFmpeg 与匹配 Chromium 的安装和构建时启动�
 
 ## 先听历史作品
 
-启动后打开 **http://127.0.0.1:4178/listen.html**，直接播放已有作品，无需重新渲染。
+启动后打开 **http://127.0.0.1:4178/listen.html**  即可直接播放已有作品，无需重新渲染。
 
 - [海岛场景混音](artifacts/cozy-game-context.mp3)、[海岛合成](artifacts/cozy-synth-listen.mp3) / [采样木琴](artifacts/cozy-hybrid-listen.mp3)。
 - [霓虹动作](artifacts/neon-listen.mp3)、[幽暗遗迹](artifacts/ruins-listen.mp3)。
