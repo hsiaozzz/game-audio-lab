@@ -3,3 +3,5 @@
 *.mp3 binary
 *.ogg binary
 *.png binary
+*.m4a binary
+*.zip binary

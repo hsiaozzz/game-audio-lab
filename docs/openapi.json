@@ -1,0 +1,5408 @@
+{
+  "openapi": "3.1.0",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "GameAudioLab delivery service",
+    "version": "1.0.0",
+    "description": "Implemented /v1/audio service, not the legacy /api/audio prototype. Workflow: create plan -> verify and copy full confirmation -> submit with Idempotency-Key -> poll/cancel/retry -> verify immutable manifest/files -> decode locally and unlock playback after a user gesture. No audio is generated on a gameplay event. Unknown methods return 404, not 405. Request field strictness mirrors runtime: generation envelopes/delivery/items are strict; shared GameBrief/EventContract extension metadata is deliberately preserved. Tokens map to owners on the server; never send owner in a request. Loopback development without configured tokens uses local-development; non-loopback startup requires configured tokens. Browser clients must explicitly allowlist their Origin and use bearer credentials with credentials:omit. A reverse proxy may supply HTTPS; current same-origin CORS detection compares Origin to http://Host."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:4178",
+      "description": "Default loopback development server; authentication optional only when no service token is configured."
+    }
+  ],
+  "security": [
+    {
+      "ServiceBearer": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Audio service",
+      "description": "Owner-isolated planning, confirmed rendering and immutable file delivery."
+    }
+  ],
+  "paths": {
+    "/v1/audio/health": {
+      "get": {
+        "operationId": "getAudioHealth",
+        "summary": "Inspect cached runtime dependency status",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Health object, including degraded renderer details. This endpoint does not render audio.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        }
+      },
+      "options": {
+        "operationId": "preflightgetAudioHealth",
+        "summary": "CORS preflight (no Bearer token required)",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no response body.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Exact allowed request Origin; emitted for allowed cross-origin requests."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "const": "GET, HEAD, POST, DELETE, OPTIONS",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "const": "Authorization, Content-Type, Idempotency-Key, Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Expose-Headers": {
+                "schema": {
+                  "const": "ETag, Content-Length, Content-Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Max-Age": {
+                "schema": {
+                  "const": "600",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        },
+        "security": [],
+        "description": "OPTIONS is accepted on any path below /v1/audio/ before authorization or rate limiting. An unlisted cross-origin Origin still receives 403. The current implementation emits Access-Control-Expose-Headers on preflight only; same-origin clients can inspect ETag/Range headers directly."
+      }
+    },
+    "/v1/audio/capabilities": {
+      "get": {
+        "operationId": "getAudioCapabilities",
+        "summary": "Discover formats, limits and compiler capabilities",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Capabilities from the running service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapabilitiesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        }
+      },
+      "options": {
+        "operationId": "preflightgetAudioCapabilities",
+        "summary": "CORS preflight (no Bearer token required)",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no response body.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Exact allowed request Origin; emitted for allowed cross-origin requests."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "const": "GET, HEAD, POST, DELETE, OPTIONS",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "const": "Authorization, Content-Type, Idempotency-Key, Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Expose-Headers": {
+                "schema": {
+                  "const": "ETag, Content-Length, Content-Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Max-Age": {
+                "schema": {
+                  "const": "600",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        },
+        "security": [],
+        "description": "OPTIONS is accepted on any path below /v1/audio/ before authorization or rate limiting. An unlisted cross-origin Origin still receives 403. The current implementation emits Access-Control-Expose-Headers on preflight only; same-origin clients can inspect ETag/Range headers directly."
+      }
+    },
+    "/v1/audio/plans": {
+      "post": {
+        "operationId": "createAudioPlan",
+        "summary": "Create and persist an immutable delivery plan",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "201": {
+            "description": "Plan awaiting programmatic host confirmation; no audio rendering has begun.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request, invalid contract/path/selection, unsupported job field, or missing/invalid Idempotency-Key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "invalid-request",
+              "invalid-audio-contract",
+              "invalid-json",
+              "invalid-resource-path",
+              "invalid_request",
+              "unsupported_job_field",
+              "invalid_selection",
+              "unknown_item",
+              "required_item_missing",
+              "invalid_retry_items",
+              "item_not_retryable",
+              "idempotency_key_required"
+            ]
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "409": {
+            "description": "Plan, identity, delivery, retry state or idempotency conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "plan_digest_mismatch",
+              "identity_mismatch",
+              "delivery_mismatch",
+              "idempotency_conflict",
+              "job_not_retryable",
+              "retry_selection_mismatch",
+              "plan_conflict"
+            ]
+          },
+          "413": {
+            "description": "JSON request body exceeds 262144 bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "request-too-large"
+            ]
+          },
+          "415": {
+            "description": "Content-Type must include application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unsupported-content-type"
+            ]
+          },
+          "422": {
+            "description": "Unsupported generation capability, invalid delivery/item/spatial field, missing required event, duration or estimated budget failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unsupported-request-field",
+              "unsupported-options",
+              "event-limit",
+              "item-limit",
+              "invalid-item-id",
+              "unsupported-sfx-field",
+              "unsupported-music-field",
+              "invalid-spatial",
+              "invalid-budget",
+              "unsupported-format",
+              "invalid-format-override",
+              "unknown-format-override",
+              "unsupported-profile",
+              "unsupported-selection",
+              "unsupported-quality",
+              "required-event-missing",
+              "ambiguous-event",
+              "unmapped-event",
+              "unknown-scene",
+              "unsupported-playback",
+              "duration-budget",
+              "estimated-budget-exceeded",
+              "invalid-delivery",
+              "unsupported-delivery-field",
+              "invalid-item",
+              "music-limit",
+              "invalid-loop",
+              "unknown-item-kind"
+            ]
+          },
+          "429": {
+            "description": "Write rate exceeds 60 requests per owner per minute, or queue is full (default 16 unfinished jobs per owner, 64 globally). Error.retryable=true; no Retry-After header is currently emitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "rate-limited",
+              "queue_capacity_exceeded"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          },
+          "502": {
+            "description": "Configured remote director returned an invalid output.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "invalid-director-output",
+              "director-response-too-large"
+            ]
+          },
+          "503": {
+            "description": "Temporary dependency/director/store failure, or corrupted package bytes. Consult error.retryable; corruption is not automatically retryable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "director-unavailable",
+              "store_closed",
+              "store_lock_lost",
+              "package-corrupted",
+              "director-rejected"
+            ]
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRequest"
+              },
+              "examples": {
+                "islandGame": {
+                  "summary": "Required pickup variants plus a shared exploration theme",
+                  "value": {
+                    "gameBrief": {
+                      "schemaVersion": 1,
+                      "projectId": "service-handoff-demo",
+                      "revision": 1,
+                      "prompt": "温暖海岛收集游戏，轻柔木琴背景音乐，拾取物品反馈清楚"
+                    },
+                    "eventContract": {
+                      "schemaVersion": 1,
+                      "version": 1,
+                      "sceneStates": [
+                        "menu",
+                        "exploration"
+                      ],
+                      "events": [
+                        {
+                          "id": "item.collect",
+                          "cue": "collect",
+                          "required": true,
+                          "maxRatePerSecond": 6
+                        },
+                        {
+                          "id": "player.hit",
+                          "cue": "hit",
+                          "required": false,
+                          "maxRatePerSecond": 3
+                        }
+                      ]
+                    },
+                    "options": {
+                      "seed": 1701
+                    },
+                    "audioRequests": [
+                      {
+                        "id": "sfx.item.collect",
+                        "kind": "sfx",
+                        "eventId": "item.collect",
+                        "required": true,
+                        "variants": 2
+                      },
+                      {
+                        "id": "bgm.exploration",
+                        "kind": "music",
+                        "scene": "exploration",
+                        "required": true,
+                        "loop": true,
+                        "playback": "mix",
+                        "maxDurationSeconds": 50
+                      }
+                    ],
+                    "delivery": {
+                      "profile": "compact-opus-v1",
+                      "acceptedFormats": [
+                        "opus-ogg",
+                        "aac-lc-m4a"
+                      ],
+                      "selection": "one-format-per-item",
+                      "maxTransferBytes": 12582912,
+                      "maxDecodedPcmBytes": 67108864
+                    }
+                  }
+                },
+                "spatialSfx": {
+                  "summary": "Only confirmed mono positional SFX",
+                  "value": {
+                    "gameBrief": {
+                      "schemaVersion": 1,
+                      "projectId": "spatial-demo",
+                      "revision": 1,
+                      "prompt": "3D ruins exploration with clear impact sounds"
+                    },
+                    "eventContract": {
+                      "version": 1,
+                      "events": [
+                        {
+                          "id": "enemy.hit",
+                          "cue": "hit",
+                          "required": true,
+                          "maxRatePerSecond": 6
+                        }
+                      ],
+                      "sceneStates": []
+                    },
+                    "audioRequests": [
+                      {
+                        "id": "sfx.enemy.hit",
+                        "kind": "sfx",
+                        "eventId": "enemy.hit",
+                        "spatial": {
+                          "enabled": true,
+                          "refDistance": 1,
+                          "maxDistance": 80,
+                          "rolloffFactor": 1,
+                          "distanceModel": "inverse"
+                        }
+                      }
+                    ],
+                    "delivery": {
+                      "acceptedFormats": [
+                        "opus-ogg"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "preflightcreateAudioPlan",
+        "summary": "CORS preflight (no Bearer token required)",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no response body.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Exact allowed request Origin; emitted for allowed cross-origin requests."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "const": "GET, HEAD, POST, DELETE, OPTIONS",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "const": "Authorization, Content-Type, Idempotency-Key, Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Expose-Headers": {
+                "schema": {
+                  "const": "ETag, Content-Length, Content-Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Max-Age": {
+                "schema": {
+                  "const": "600",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        },
+        "security": [],
+        "description": "OPTIONS is accepted on any path below /v1/audio/ before authorization or rate limiting. An unlisted cross-origin Origin still receives 403. The current implementation emits Access-Control-Expose-Headers on preflight only; same-origin clients can inspect ETag/Range headers directly."
+      }
+    },
+    "/v1/audio/plans/{planId}": {
+      "parameters": [
+        {
+          "name": "planId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^plan-[a-f0-9]{64}$"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getAudioPlan",
+        "summary": "Read a plan belonging to this owner",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Persisted delivery plan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        }
+      },
+      "options": {
+        "operationId": "preflightgetAudioPlan",
+        "summary": "CORS preflight (no Bearer token required)",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no response body.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Exact allowed request Origin; emitted for allowed cross-origin requests."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "const": "GET, HEAD, POST, DELETE, OPTIONS",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "const": "Authorization, Content-Type, Idempotency-Key, Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Expose-Headers": {
+                "schema": {
+                  "const": "ETag, Content-Length, Content-Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Max-Age": {
+                "schema": {
+                  "const": "600",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        },
+        "security": [],
+        "description": "OPTIONS is accepted on any path below /v1/audio/ before authorization or rate limiting. An unlisted cross-origin Origin still receives 403. The current implementation emits Access-Control-Expose-Headers on preflight only; same-origin clients can inspect ETag/Range headers directly."
+      }
+    },
+    "/v1/audio/jobs": {
+      "post": {
+        "operationId": "submitAudioJob",
+        "summary": "Confirm the exact plan and render selected audio",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Idempotent replay of the existing job; replayed=true.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitJobResponse"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Existing job status URL."
+              }
+            }
+          },
+          "202": {
+            "description": "New job accepted. Poll job.statusUrl.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitJobResponse"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "New job status URL."
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request, invalid contract/path/selection, unsupported job field, or missing/invalid Idempotency-Key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "invalid-request",
+              "invalid-audio-contract",
+              "invalid-json",
+              "invalid-resource-path",
+              "invalid_request",
+              "unsupported_job_field",
+              "invalid_selection",
+              "unknown_item",
+              "required_item_missing",
+              "invalid_retry_items",
+              "item_not_retryable",
+              "idempotency_key_required"
+            ]
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "409": {
+            "description": "Plan, identity, delivery, retry state or idempotency conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "plan_digest_mismatch",
+              "identity_mismatch",
+              "delivery_mismatch",
+              "idempotency_conflict",
+              "job_not_retryable",
+              "retry_selection_mismatch",
+              "plan_conflict"
+            ]
+          },
+          "413": {
+            "description": "JSON request body exceeds 262144 bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "request-too-large"
+            ]
+          },
+          "415": {
+            "description": "Content-Type must include application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unsupported-content-type"
+            ]
+          },
+          "422": {
+            "description": "Unsupported generation capability, invalid delivery/item/spatial field, missing required event, duration or estimated budget failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unsupported-request-field",
+              "unsupported-options",
+              "event-limit",
+              "item-limit",
+              "invalid-item-id",
+              "unsupported-sfx-field",
+              "unsupported-music-field",
+              "invalid-spatial",
+              "invalid-budget",
+              "unsupported-format",
+              "invalid-format-override",
+              "unknown-format-override",
+              "unsupported-profile",
+              "unsupported-selection",
+              "unsupported-quality",
+              "required-event-missing",
+              "ambiguous-event",
+              "unmapped-event",
+              "unknown-scene",
+              "unsupported-playback",
+              "duration-budget",
+              "estimated-budget-exceeded",
+              "invalid-delivery",
+              "unsupported-delivery-field",
+              "invalid-item",
+              "music-limit",
+              "invalid-loop",
+              "unknown-item-kind"
+            ]
+          },
+          "429": {
+            "description": "Write rate exceeds 60 requests per owner per minute, or queue is full (default 16 unfinished jobs per owner, 64 globally). Error.retryable=true; no Retry-After header is currently emitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "rate-limited",
+              "queue_capacity_exceeded"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          },
+          "503": {
+            "description": "Temporary dependency/director/store failure, or corrupted package bytes. Consult error.retryable; corruption is not automatically retryable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "director-unavailable",
+              "store_closed",
+              "store_lock_lost",
+              "package-corrupted",
+              "director-rejected"
+            ]
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "\\S"
+            },
+            "description": "Opaque key scoped to authenticated owner + project. Same normalized body returns original job (200); changed body returns 409. Reuse the original key after a lost response. Retry requires its own key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmJobRequest"
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "preflightsubmitAudioJob",
+        "summary": "CORS preflight (no Bearer token required)",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no response body.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Exact allowed request Origin; emitted for allowed cross-origin requests."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "const": "GET, HEAD, POST, DELETE, OPTIONS",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "const": "Authorization, Content-Type, Idempotency-Key, Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Expose-Headers": {
+                "schema": {
+                  "const": "ETag, Content-Length, Content-Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Max-Age": {
+                "schema": {
+                  "const": "600",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        },
+        "security": [],
+        "description": "OPTIONS is accepted on any path below /v1/audio/ before authorization or rate limiting. An unlisted cross-origin Origin still receives 403. The current implementation emits Access-Control-Expose-Headers on preflight only; same-origin clients can inspect ETag/Range headers directly."
+      }
+    },
+    "/v1/audio/jobs/{jobId}": {
+      "parameters": [
+        {
+          "name": "jobId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getAudioJob",
+        "summary": "Poll component status and latest package pointer",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Job state; HTTP success does not imply successful rendering.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        }
+      },
+      "delete": {
+        "operationId": "cancelAudioJob",
+        "summary": "Cancel outstanding components",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled job, or unchanged terminal job. Repeated cancellation is idempotent. Ready assets and published packages are preserved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "429": {
+            "description": "Write rate exceeds 60 requests per owner per minute, or queue is full (default 16 unfinished jobs per owner, 64 globally). Error.retryable=true; no Retry-After header is currently emitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "rate-limited",
+              "queue_capacity_exceeded"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          },
+          "503": {
+            "description": "Temporary dependency/director/store failure, or corrupted package bytes. Consult error.retryable; corruption is not automatically retryable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "director-unavailable",
+              "store_closed",
+              "store_lock_lost",
+              "package-corrupted",
+              "director-rejected"
+            ]
+          }
+        }
+      },
+      "options": {
+        "operationId": "preflightgetAudioJob_cancelAudioJob",
+        "summary": "CORS preflight (no Bearer token required)",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no response body.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Exact allowed request Origin; emitted for allowed cross-origin requests."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "const": "GET, HEAD, POST, DELETE, OPTIONS",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "const": "Authorization, Content-Type, Idempotency-Key, Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Expose-Headers": {
+                "schema": {
+                  "const": "ETag, Content-Length, Content-Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Max-Age": {
+                "schema": {
+                  "const": "600",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        },
+        "security": [],
+        "description": "OPTIONS is accepted on any path below /v1/audio/ before authorization or rate limiting. An unlisted cross-origin Origin still receives 403. The current implementation emits Access-Control-Expose-Headers on preflight only; same-origin clients can inspect ETag/Range headers directly."
+      }
+    },
+    "/v1/audio/jobs/{jobId}/retry": {
+      "parameters": [
+        {
+          "name": "jobId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "retryAudioJob",
+        "summary": "Create a new job for retryable incomplete components",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Idempotent replay of the retry job.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitJobResponse"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "New job with retryOf and retryItems. Successful assets are reused. No Location header is currently emitted by retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request, invalid contract/path/selection, unsupported job field, or missing/invalid Idempotency-Key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "invalid-request",
+              "invalid-audio-contract",
+              "invalid-json",
+              "invalid-resource-path",
+              "invalid_request",
+              "unsupported_job_field",
+              "invalid_selection",
+              "unknown_item",
+              "required_item_missing",
+              "invalid_retry_items",
+              "item_not_retryable",
+              "idempotency_key_required"
+            ]
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "409": {
+            "description": "Plan, identity, delivery, retry state or idempotency conflict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "plan_digest_mismatch",
+              "identity_mismatch",
+              "delivery_mismatch",
+              "idempotency_conflict",
+              "job_not_retryable",
+              "retry_selection_mismatch",
+              "plan_conflict"
+            ]
+          },
+          "413": {
+            "description": "JSON request body exceeds 262144 bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "request-too-large"
+            ]
+          },
+          "415": {
+            "description": "Content-Type must include application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unsupported-content-type"
+            ]
+          },
+          "422": {
+            "description": "Unsupported generation capability, invalid delivery/item/spatial field, missing required event, duration or estimated budget failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unsupported-request-field",
+              "unsupported-options",
+              "event-limit",
+              "item-limit",
+              "invalid-item-id",
+              "unsupported-sfx-field",
+              "unsupported-music-field",
+              "invalid-spatial",
+              "invalid-budget",
+              "unsupported-format",
+              "invalid-format-override",
+              "unknown-format-override",
+              "unsupported-profile",
+              "unsupported-selection",
+              "unsupported-quality",
+              "required-event-missing",
+              "ambiguous-event",
+              "unmapped-event",
+              "unknown-scene",
+              "unsupported-playback",
+              "duration-budget",
+              "estimated-budget-exceeded",
+              "invalid-delivery",
+              "unsupported-delivery-field",
+              "invalid-item",
+              "music-limit",
+              "invalid-loop",
+              "unknown-item-kind"
+            ]
+          },
+          "429": {
+            "description": "Write rate exceeds 60 requests per owner per minute, or queue is full (default 16 unfinished jobs per owner, 64 globally). Error.retryable=true; no Retry-After header is currently emitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "rate-limited",
+              "queue_capacity_exceeded"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          },
+          "503": {
+            "description": "Temporary dependency/director/store failure, or corrupted package bytes. Consult error.retryable; corruption is not automatically retryable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "director-unavailable",
+              "store_closed",
+              "store_lock_lost",
+              "package-corrupted",
+              "director-rejected"
+            ]
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "\\S"
+            },
+            "description": "Opaque key scoped to authenticated owner + project. Same normalized body returns original job (200); changed body returns 409. Reuse the original key after a lost response. Retry requires its own key."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryJobRequest"
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "preflightretryAudioJob",
+        "summary": "CORS preflight (no Bearer token required)",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no response body.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Exact allowed request Origin; emitted for allowed cross-origin requests."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "const": "GET, HEAD, POST, DELETE, OPTIONS",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "const": "Authorization, Content-Type, Idempotency-Key, Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Expose-Headers": {
+                "schema": {
+                  "const": "ETag, Content-Length, Content-Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Max-Age": {
+                "schema": {
+                  "const": "600",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        },
+        "security": [],
+        "description": "OPTIONS is accepted on any path below /v1/audio/ before authorization or rate limiting. An unlisted cross-origin Origin still receives 403. The current implementation emits Access-Control-Expose-Headers on preflight only; same-origin clients can inspect ETag/Range headers directly."
+      }
+    },
+    "/v1/audio/packages/{packageId}/manifest": {
+      "parameters": [
+        {
+          "name": "packageId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getAudioManifest",
+        "summary": "Read an immutable media manifest",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Manifest object directly. Verify packageId by hashing canonical JSON without packageId.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaManifest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        }
+      },
+      "head": {
+        "operationId": "headAudioManifest",
+        "summary": "Check existence of an owner-bound manifest",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Exists; no response body. Only Content-Type application/json is guaranteed."
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        }
+      },
+      "options": {
+        "operationId": "preflightgetAudioManifest_headAudioManifest",
+        "summary": "CORS preflight (no Bearer token required)",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no response body.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Exact allowed request Origin; emitted for allowed cross-origin requests."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "const": "GET, HEAD, POST, DELETE, OPTIONS",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "const": "Authorization, Content-Type, Idempotency-Key, Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Expose-Headers": {
+                "schema": {
+                  "const": "ETag, Content-Length, Content-Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Max-Age": {
+                "schema": {
+                  "const": "600",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        },
+        "security": [],
+        "description": "OPTIONS is accepted on any path below /v1/audio/ before authorization or rate limiting. An unlisted cross-origin Origin still receives 403. The current implementation emits Access-Control-Expose-Headers on preflight only; same-origin clients can inspect ETag/Range headers directly."
+      }
+    },
+    "/v1/audio/packages/{packageId}/files/{filePath}": {
+      "parameters": [
+        {
+          "name": "packageId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        {
+          "name": "filePath",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Entire package-relative file path, including slash-delimited subdirectories. Encode each segment, preserve separators. Traversal, dot-prefixed segments and backslashes are rejected."
+        }
+      ],
+      "get": {
+        "operationId": "getAudioFile",
+        "summary": "Fetch one listed file, optionally using a single byte range",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Full encoded media or provenance bytes.",
+            "headers": {
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "const": "bytes",
+                  "type": "string"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Quoted SHA-256 of full file."
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "private, max-age=31536000, immutable",
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "audio/ogg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "audio/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Selected bytes. SHA-256 metadata always refers to the complete file; assemble/verify the full file before playback.",
+            "headers": {
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "const": "bytes",
+                  "type": "string"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Quoted SHA-256 of full file."
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "private, max-age=31536000, immutable",
+                  "type": "string"
+                }
+              },
+              "Content-Range": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^bytes [0-9]+-[0-9]+/[0-9]+$"
+                }
+              }
+            },
+            "content": {
+              "audio/ogg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "audio/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Exact If-None-Match without Range; no body.",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Quoted SHA-256 of full file."
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "const": "bytes",
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "private, max-age=31536000, immutable",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request, invalid contract/path/selection, unsupported job field, or missing/invalid Idempotency-Key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "invalid-request",
+              "invalid-audio-contract",
+              "invalid-json",
+              "invalid-resource-path",
+              "invalid_request",
+              "unsupported_job_field",
+              "invalid_selection",
+              "unknown_item",
+              "required_item_missing",
+              "invalid_retry_items",
+              "item_not_retryable",
+              "idempotency_key_required"
+            ]
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "416": {
+            "description": "Invalid or unsatisfiable Range; no JSON error and no body.",
+            "headers": {
+              "Content-Range": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^bytes \\*/[0-9]+$"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Quoted SHA-256 of full file."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          },
+          "503": {
+            "description": "Temporary dependency/director/store failure, or corrupted package bytes. Consult error.retryable; corruption is not automatically retryable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "director-unavailable",
+              "store_closed",
+              "store_lock_lost",
+              "package-corrupted",
+              "director-rejected"
+            ]
+          }
+        },
+        "parameters": [
+          {
+            "name": "Range",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "pattern": "^bytes=(?:[0-9]+-[0-9]*|-[0-9]+)$"
+            },
+            "description": "One range only: bytes=start-end, bytes=start-, or bytes=-suffixLength. End is inclusive and clipped to the final byte. Invalid/multiple/unsatisfiable ranges return 416."
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Exact quoted SHA-256 ETag. Returns 304 only when Range is absent; If-Range is not implemented."
+          }
+        ]
+      },
+      "head": {
+        "operationId": "headAudioFile",
+        "summary": "Read file headers without a response body",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "200": {
+            "description": "Full-file headers; no body.",
+            "headers": {
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "const": "bytes",
+                  "type": "string"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Quoted SHA-256 of full file."
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "private, max-age=31536000, immutable",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Selected range headers; no body.",
+            "headers": {
+              "Content-Type": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "const": "bytes",
+                  "type": "string"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Quoted SHA-256 of full file."
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "private, max-age=31536000, immutable",
+                  "type": "string"
+                }
+              },
+              "Content-Range": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^bytes [0-9]+-[0-9]+/[0-9]+$"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Exact If-None-Match without Range; no body.",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Quoted SHA-256 of full file."
+                }
+              },
+              "Accept-Ranges": {
+                "schema": {
+                  "const": "bytes",
+                  "type": "string"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "const": "private, max-age=31536000, immutable",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request, invalid contract/path/selection, unsupported job field, or missing/invalid Idempotency-Key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "invalid-request",
+              "invalid-audio-contract",
+              "invalid-json",
+              "invalid-resource-path",
+              "invalid_request",
+              "unsupported_job_field",
+              "invalid_selection",
+              "unknown_item",
+              "required_item_missing",
+              "invalid_retry_items",
+              "item_not_retryable",
+              "idempotency_key_required"
+            ]
+          },
+          "401": {
+            "description": "Missing or invalid configured service Bearer credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "unauthorized"
+            ]
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "404": {
+            "description": "Unknown route/method or resource absent for the authenticated owner. Foreign resources are intentionally indistinguishable from missing ones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "not_found",
+              "route-not-found",
+              "file-not-found"
+            ]
+          },
+          "416": {
+            "description": "Invalid or unsatisfiable Range; no JSON error and no body.",
+            "headers": {
+              "Content-Range": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^bytes \\*/[0-9]+$"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "string",
+                  "description": "Quoted SHA-256 of full file."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          },
+          "503": {
+            "description": "Temporary dependency/director/store failure, or corrupted package bytes. Consult error.retryable; corruption is not automatically retryable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "director-unavailable",
+              "store_closed",
+              "store_lock_lost",
+              "package-corrupted",
+              "director-rejected"
+            ]
+          }
+        },
+        "parameters": [
+          {
+            "name": "Range",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "pattern": "^bytes=(?:[0-9]+-[0-9]*|-[0-9]+)$"
+            },
+            "description": "One range only: bytes=start-end, bytes=start-, or bytes=-suffixLength. End is inclusive and clipped to the final byte. Invalid/multiple/unsatisfiable ranges return 416."
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Exact quoted SHA-256 ETag. Returns 304 only when Range is absent; If-Range is not implemented."
+          }
+        ]
+      },
+      "options": {
+        "operationId": "preflightgetAudioFile_headAudioFile",
+        "summary": "CORS preflight (no Bearer token required)",
+        "tags": [
+          "Audio service"
+        ],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; no response body.",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Exact allowed request Origin; emitted for allowed cross-origin requests."
+              },
+              "Vary": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "const": "GET, HEAD, POST, DELETE, OPTIONS",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "const": "Authorization, Content-Type, Idempotency-Key, Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Expose-Headers": {
+                "schema": {
+                  "const": "ETag, Content-Length, Content-Range",
+                  "type": "string"
+                }
+              },
+              "Access-Control-Max-Age": {
+                "schema": {
+                  "const": "600",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin does not exactly match the CORS allowlist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "origin-not-allowed"
+            ]
+          },
+          "500": {
+            "description": "Unexpected service failure or persisted package manifest integrity failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "x-error-codes": [
+              "internal-error",
+              "package_integrity_error"
+            ]
+          }
+        },
+        "security": [],
+        "description": "OPTIONS is accepted on any path below /v1/audio/ before authorization or rate limiting. An unlisted cross-origin Origin still receives 403. The current implementation emits Access-Control-Expose-Headers on preflight only; same-origin clients can inspect ETag/Range headers directly."
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ServiceBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Operator-configured token mapped to an owner. Every resource is owner-isolated. No client-supplied owner, cookie authentication or token issuing endpoint. Required whenever tokens are configured, including health/capabilities."
+      }
+    },
+    "schemas": {
+      "GameIdentity": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "\\S"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "briefHash": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "contractVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "contractHash": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "projectId",
+          "revision",
+          "briefHash",
+          "contractVersion",
+          "contractHash"
+        ],
+        "additionalProperties": false
+      },
+      "GameBrief": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "projectId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "\\S"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "briefRevision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "pattern": "\\S"
+          },
+          "eventContractVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "projectId",
+          "prompt"
+        ],
+        "additionalProperties": true,
+        "anyOf": [
+          {
+            "required": [
+              "revision"
+            ]
+          },
+          {
+            "required": [
+              "briefRevision"
+            ]
+          }
+        ],
+        "description": "Shared JSON game description; extension fields are preserved and affect briefHash. briefRevision is a legacy alias. If both revision fields exist they must agree. Text is trimmed, NFC-normalized and CRLF normalized before hashing."
+      },
+      "GameEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "cue": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ui",
+                  "collect",
+                  "cast",
+                  "splash",
+                  "footstep",
+                  "footstepWood",
+                  "hit",
+                  "laser",
+                  "charge",
+                  "explosion",
+                  "victory",
+                  "failure"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          },
+          "maxRatePerSecond": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": true,
+        "description": "Unknown event metadata is preserved and hashed. Missing/null cue means unmapped; required events must have a cue. IDs must be unique."
+      },
+      "EventContract": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "sceneStates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "\\S"
+            },
+            "uniqueItems": true,
+            "default": []
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GameEvent"
+            },
+            "maxItems": 64
+          }
+        },
+        "required": [
+          "version",
+          "events"
+        ],
+        "additionalProperties": true,
+        "description": "Shared contract with extension metadata. Events and scenes are normalized and sorted; schemaVersion defaults to 1."
+      },
+      "PlanOptions": {
+        "type": "object",
+        "properties": {
+          "seed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "FormatId": {
+        "type": "string",
+        "enum": [
+          "opus-ogg",
+          "aac-lc-m4a"
+        ]
+      },
+      "Format": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/FormatId"
+          },
+          "container": {
+            "type": "string",
+            "enum": [
+              "ogg",
+              "mp4"
+            ]
+          },
+          "codec": {
+            "type": "string",
+            "enum": [
+              "opus",
+              "aac-lc"
+            ]
+          },
+          "extension": {
+            "type": "string",
+            "enum": [
+              ".ogg",
+              ".m4a"
+            ]
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "sampleRate": {
+            "const": 48000,
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "container",
+          "codec",
+          "extension",
+          "mimeType",
+          "sampleRate"
+        ],
+        "additionalProperties": false
+      },
+      "DeliveryRequest": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "const": "compact-opus-v1",
+            "type": "string"
+          },
+          "acceptedFormats": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "opus-ogg",
+                    "aac-lc-m4a"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 2,
+                "uniqueItems": true,
+                "default": [
+                  "opus-ogg",
+                  "aac-lc-m4a"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "selection": {
+            "const": "one-format-per-item",
+            "type": "string"
+          },
+          "formatOverrides": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "opus-ogg",
+                    "aac-lc-m4a"
+                  ]
+                },
+                "propertyNames": {
+                  "type": "string",
+                  "description": "Stable item or event ID.",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+                  "maxLength": 128
+                },
+                "default": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quality": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "compact",
+                  "high"
+                ],
+                "default": "compact"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sfxQuality": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "standard",
+                  "compact-approved"
+                ],
+                "default": "standard"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "renderMode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "hybrid",
+                  "synth"
+                ],
+                "default": "hybrid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxTransferBytes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1024,
+                "maximum": 67108864,
+                "default": 12582912
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxDecodedPcmBytes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 4096,
+                "maximum": 268435456,
+                "default": 67108864
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "description": "Only declared fields are accepted. Formats are ordered by preference; each item uses the first accepted format unless overridden. Defaults are materialized in the returned Delivery."
+      },
+      "Delivery": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "const": "compact-opus-v1",
+            "type": "string"
+          },
+          "acceptedFormats": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "opus-ogg",
+                "aac-lc-m4a"
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 2,
+            "uniqueItems": true,
+            "default": [
+              "opus-ogg",
+              "aac-lc-m4a"
+            ]
+          },
+          "selection": {
+            "const": "one-format-per-item",
+            "type": "string"
+          },
+          "formatOverrides": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "opus-ogg",
+                "aac-lc-m4a"
+              ]
+            },
+            "propertyNames": {
+              "type": "string",
+              "description": "Stable item or event ID.",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+              "maxLength": 128
+            },
+            "default": {}
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "compact",
+              "high"
+            ],
+            "default": "compact"
+          },
+          "sfxQuality": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "compact-approved"
+            ],
+            "default": "standard"
+          },
+          "renderMode": {
+            "type": "string",
+            "enum": [
+              "hybrid",
+              "synth"
+            ],
+            "default": "hybrid"
+          },
+          "maxTransferBytes": {
+            "type": "integer",
+            "minimum": 1024,
+            "maximum": 67108864,
+            "default": 12582912
+          },
+          "maxDecodedPcmBytes": {
+            "type": "integer",
+            "minimum": 4096,
+            "maximum": 268435456,
+            "default": 67108864
+          }
+        },
+        "required": [
+          "profile",
+          "acceptedFormats",
+          "selection",
+          "formatOverrides",
+          "quality",
+          "sfxQuality",
+          "renderMode",
+          "maxTransferBytes",
+          "maxDecodedPcmBytes"
+        ],
+        "additionalProperties": false,
+        "description": "Fully normalized confirmation snapshot. Copy the complete returned object into jobs/retries; changing or omitting any property returns 409."
+      },
+      "SpatialRequest": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "refDistance": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "default": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxDistance": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10000,
+                "default": 100,
+                "description": "Must be at least refDistance."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rolloffFactor": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "default": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "distanceModel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "inverse",
+                  "linear",
+                  "exponential"
+                ],
+                "default": "inverse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "additionalProperties": false,
+        "description": "Mono SFX source with host-side HRTF distance panning when enabled. No occlusion, geometry or reverberation model. maxDistance >= refDistance. Spatial coordinates belong to playback events, not this generation request."
+      },
+      "Spatial": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "const": false,
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "enabled"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "refDistance": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "default": 1
+              },
+              "maxDistance": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10000,
+                "default": 100,
+                "description": "Must be at least refDistance."
+              },
+              "rolloffFactor": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10,
+                "default": 1
+              },
+              "distanceModel": {
+                "type": "string",
+                "enum": [
+                  "inverse",
+                  "linear",
+                  "exponential"
+                ],
+                "default": "inverse"
+              }
+            },
+            "required": [
+              "enabled",
+              "refDistance",
+              "maxDistance",
+              "rolloffFactor",
+              "distanceModel"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "SfxRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "kind": {
+            "const": "sfx",
+            "type": "string"
+          },
+          "eventId": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          },
+          "variants": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3,
+                "default": 1,
+                "description": "Victory/failure support one variant. In synth mode ui/collect/laser/charge also support one; other cues support up to three."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "spatial": {
+            "$ref": "#/components/schemas/SpatialRequest"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "eventId"
+        ],
+        "additionalProperties": false
+      },
+      "MusicRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "kind": {
+            "const": "music",
+            "type": "string"
+          },
+          "scene": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "\\S"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          },
+          "loop": {
+            "type": "boolean",
+            "default": true
+          },
+          "playback": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "mix",
+                  "stems"
+                ],
+                "default": "mix"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxDurationSeconds": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Upper bound for the entire composed theme, not a trim request. The composed result must also be <=65 seconds."
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "scene"
+        ],
+        "additionalProperties": false,
+        "description": "At most four slots. All slots in a plan share one composed theme; scene labels do not create independently composed songs. stems delivers exactly core/texture/rhythm; mix delivers one file."
+      },
+      "PlanRequest": {
+        "type": "object",
+        "properties": {
+          "gameBrief": {
+            "$ref": "#/components/schemas/GameBrief"
+          },
+          "eventContract": {
+            "$ref": "#/components/schemas/EventContract"
+          },
+          "options": {
+            "$ref": "#/components/schemas/PlanOptions"
+          },
+          "audioRequests": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SfxRequest"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MusicRequest"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 32,
+                "description": "If omitted, mapped events become SFX and one required exploration/first-scene mix is added when scenes exist. Required event coverage and one SFX item per event are enforced."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/DeliveryRequest"
+          }
+        },
+        "required": [
+          "gameBrief",
+          "eventContract"
+        ],
+        "additionalProperties": false,
+        "description": "Maximum JSON body size 262144 bytes. Unsupported top-level fields are rejected; runtime functions or provider URLs cannot be supplied here."
+      },
+      "SfxItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "kind": {
+            "const": "sfx",
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "formatId": {
+            "type": "string",
+            "enum": [
+              "opus-ogg",
+              "aac-lc-m4a"
+            ]
+          },
+          "sampleRate": {
+            "const": 48000,
+            "type": "number"
+          },
+          "variants": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "channels": {
+            "const": 1,
+            "type": "number"
+          },
+          "bitrateKbps": {
+            "type": "integer",
+            "enum": [
+              32,
+              48,
+              64,
+              96
+            ]
+          },
+          "eventId": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "cue": {
+            "type": "string",
+            "enum": [
+              "ui",
+              "collect",
+              "cast",
+              "splash",
+              "footstep",
+              "footstepWood",
+              "hit",
+              "laser",
+              "charge",
+              "explosion",
+              "victory",
+              "failure"
+            ]
+          },
+          "maxRatePerSecond": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "exclusiveMinimum": 0,
+                "maximum": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "spatial": {
+            "$ref": "#/components/schemas/Spatial"
+          },
+          "estimatedDurationSeconds": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "required",
+          "formatId",
+          "sampleRate",
+          "variants",
+          "channels",
+          "bitrateKbps",
+          "eventId",
+          "cue",
+          "maxRatePerSecond",
+          "spatial",
+          "estimatedDurationSeconds"
+        ],
+        "additionalProperties": false
+      },
+      "MusicItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "kind": {
+            "const": "music",
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "formatId": {
+            "type": "string",
+            "enum": [
+              "opus-ogg",
+              "aac-lc-m4a"
+            ]
+          },
+          "sampleRate": {
+            "const": 48000,
+            "type": "number"
+          },
+          "variants": {
+            "const": 1,
+            "type": "number"
+          },
+          "channels": {
+            "const": 2,
+            "type": "number"
+          },
+          "bitrateKbps": {
+            "type": "integer",
+            "enum": [
+              32,
+              48,
+              64,
+              96
+            ]
+          },
+          "scene": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "\\S"
+          },
+          "loop": {
+            "type": "boolean"
+          },
+          "playback": {
+            "type": "string",
+            "enum": [
+              "mix",
+              "stems"
+            ]
+          },
+          "durationSeconds": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": 0,
+            "maximum": 65
+          },
+          "contentPolicy": {
+            "const": "shared-theme-per-plan",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "required",
+          "formatId",
+          "sampleRate",
+          "variants",
+          "channels",
+          "bitrateKbps",
+          "scene",
+          "loop",
+          "playback",
+          "durationSeconds",
+          "contentPolicy"
+        ],
+        "additionalProperties": false
+      },
+      "SourcePlan": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "kind": {
+            "const": "game-audio-plan",
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "\\S"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "briefHash": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "contractVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "contractHash": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "planId": {
+            "type": "string"
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "compilerVersion": {
+            "type": "string"
+          },
+          "composerVersion": {
+            "type": "string"
+          },
+          "soundBankVersion": {
+            "type": "string"
+          },
+          "director": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "gameBrief": {
+            "$ref": "#/components/schemas/GameBrief"
+          },
+          "eventContract": {
+            "$ref": "#/components/schemas/EventContract"
+          },
+          "audioSpec": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "score": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "scoreHash": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "bindings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "cue": {
+                  "type": "string",
+                  "enum": [
+                    "ui",
+                    "collect",
+                    "cast",
+                    "splash",
+                    "footstep",
+                    "footstepWood",
+                    "hit",
+                    "laser",
+                    "charge",
+                    "explosion",
+                    "victory",
+                    "failure"
+                  ]
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "maxRatePerSecond": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "maximum": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "cue",
+                "required",
+                "maxRatePerSecond"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "unmappedOptionalEvents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Stable item or event ID.",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+              "maxLength": 128
+            }
+          },
+          "mediaStatus": {
+            "const": "not-rendered",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "kind",
+          "projectId",
+          "revision",
+          "briefHash",
+          "contractVersion",
+          "contractHash",
+          "planId",
+          "seed",
+          "compilerVersion",
+          "composerVersion",
+          "soundBankVersion",
+          "director",
+          "gameBrief",
+          "eventContract",
+          "audioSpec",
+          "score",
+          "scoreHash",
+          "bindings",
+          "unmappedOptionalEvents",
+          "mediaStatus"
+        ],
+        "additionalProperties": false,
+        "description": "Source score/compiler contract, not an encoded media package. Its source planId is different from the outer delivery planId."
+      },
+      "DeliveryPlan": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "kind": {
+            "const": "audio-delivery-plan",
+            "type": "string"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/GameIdentity"
+          },
+          "sourcePlan": {
+            "$ref": "#/components/schemas/SourcePlan"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SfxItem"
+                },
+                {
+                  "$ref": "#/components/schemas/MusicItem"
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 32
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/Delivery"
+          },
+          "estimates": {
+            "type": "object",
+            "properties": {
+              "maxTransferBytes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "decodedPcmBytes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "requiredTransferBytes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "requiredDecodedPcmBytes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "accuracy": {
+                "const": "conservative-estimate-not-measurement",
+                "type": "string"
+              }
+            },
+            "required": [
+              "maxTransferBytes",
+              "decodedPcmBytes",
+              "requiredTransferBytes",
+              "requiredDecodedPcmBytes",
+              "accuracy"
+            ],
+            "additionalProperties": false
+          },
+          "versions": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "const": "audio-service-v1",
+                "type": "string"
+              },
+              "sourceHashes": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "description": "SHA-256, lowercase hexadecimal.",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "algorithm": {
+                "$ref": "#/components/schemas/AlgorithmIdentity"
+              }
+            },
+            "required": [
+              "service",
+              "sourceHashes",
+              "algorithm"
+            ],
+            "additionalProperties": false
+          },
+          "planDigest": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "planId": {
+            "type": "string",
+            "pattern": "^plan-[a-f0-9]{64}$"
+          },
+          "status": {
+            "const": "awaiting-confirmation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "kind",
+          "identity",
+          "sourcePlan",
+          "items",
+          "delivery",
+          "estimates",
+          "versions",
+          "planDigest",
+          "planId",
+          "status"
+        ],
+        "additionalProperties": false,
+        "description": "Immutable owner-bound plan. planDigest is SHA-256 of canonical JSON excluding planId/planDigest/status. Object keys sort lexicographically; array order is preserved. Creating a plan does not render audio."
+      },
+      "PlanResponse": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/DeliveryPlan"
+          }
+        },
+        "required": [
+          "plan"
+        ],
+        "additionalProperties": false
+      },
+      "ConfirmJobRequest": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string",
+            "pattern": "^plan-[a-f0-9]{64}$"
+          },
+          "planDigest": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/GameIdentity"
+          },
+          "acceptedItems": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Stable item or event ID.",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+              "maxLength": 128
+            },
+            "minItems": 1,
+            "description": "Known plan item IDs. Required items must all be included. The service deduplicates and sorts this array."
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/Delivery"
+          }
+        },
+        "required": [
+          "planId",
+          "planDigest",
+          "identity",
+          "acceptedItems",
+          "delivery"
+        ],
+        "additionalProperties": false,
+        "description": "This POST confirms the exact plan/delivery and starts selected-only rendering. Identity and delivery must exactly match the plan. Required selection is enforced independently of JSON Schema."
+      },
+      "RetryJobRequest": {
+        "type": "object",
+        "properties": {
+          "planId": {
+            "type": "string",
+            "pattern": "^plan-[a-f0-9]{64}$"
+          },
+          "planDigest": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/GameIdentity"
+          },
+          "acceptedItems": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Stable item or event ID.",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+              "maxLength": 128
+            },
+            "minItems": 1,
+            "description": "Known plan item IDs. Required items must all be included. The service deduplicates and sorts this array."
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/Delivery"
+          },
+          "retryItems": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Stable item or event ID.",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+              "maxLength": 128
+            },
+            "minItems": 1,
+            "description": "If omitted, selects all retryable failed/cancelled components. Only incomplete terminal jobs can be retried; immutable ready components are reused."
+          }
+        },
+        "required": [
+          "planId",
+          "planDigest",
+          "identity",
+          "acceptedItems",
+          "delivery"
+        ],
+        "additionalProperties": false,
+        "description": "Repeat the original complete confirmation; returns a new linked job. Non-retryable failures cannot be selected. Existing published packages remain immutable."
+      },
+      "AudioError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "componentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "retryable"
+        ],
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/AudioError"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "JobComponent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sfx",
+              "music"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "rendering",
+              "ready",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "cacheHit": {
+            "type": "boolean"
+          },
+          "error": {
+            "$ref": "#/components/schemas/AudioError"
+          },
+          "fileCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "required",
+          "status",
+          "attempts",
+          "cacheHit"
+        ],
+        "additionalProperties": false
+      },
+      "AudioJob": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "jobId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "rendering",
+              "ready",
+              "partial-ready",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "statusUrl": {
+            "type": "string"
+          },
+          "planId": {
+            "type": "string",
+            "pattern": "^plan-[a-f0-9]{64}$"
+          },
+          "planDigest": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/GameIdentity"
+          },
+          "selectionDigest": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "acceptedItems": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Stable item or event ID.",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+              "maxLength": 128
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/Delivery"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobComponent"
+            },
+            "minItems": 1
+          },
+          "requiredReady": {
+            "type": "boolean"
+          },
+          "allSelectedReady": {
+            "type": "boolean"
+          },
+          "progress": {
+            "type": "object",
+            "properties": {
+              "ready": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "failed": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "ready",
+              "total",
+              "failed"
+            ],
+            "additionalProperties": false
+          },
+          "packageId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "SHA-256, lowercase hexadecimal.",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "manifestUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "packageUrl": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Alias of manifestUrl; there is no archive-download endpoint."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "filesBaseUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "retryOf": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "retryItems": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Stable item or event ID.",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+              "maxLength": 128
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "recoveredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/MeasuredBudget"
+          }
+        },
+        "required": [
+          "id",
+          "jobId",
+          "status",
+          "statusUrl",
+          "planId",
+          "planDigest",
+          "identity",
+          "selectionDigest",
+          "acceptedItems",
+          "delivery",
+          "components",
+          "requiredReady",
+          "allSelectedReady",
+          "progress",
+          "packageId",
+          "manifestUrl",
+          "packageUrl",
+          "filesBaseUrl",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false,
+        "description": "partial-ready is terminal. requiredReady and allSelectedReady have different meanings. A rendering job may expose an immutable partial package; later success updates the job URL to a new digest."
+      },
+      "JobResponse": {
+        "type": "object",
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/AudioJob"
+          }
+        },
+        "required": [
+          "job"
+        ],
+        "additionalProperties": false
+      },
+      "SubmitJobResponse": {
+        "type": "object",
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/AudioJob"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "job",
+          "replayed"
+        ],
+        "additionalProperties": false
+      },
+      "MeasuredBudget": {
+        "type": "object",
+        "properties": {
+          "transferBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "decodedPcmBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxTransferBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "maxDecodedPcmBytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "measurement": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "transferBytes",
+          "decodedPcmBytes",
+          "maxTransferBytes",
+          "maxDecodedPcmBytes",
+          "measurement"
+        ],
+        "additionalProperties": false
+      },
+      "Loop": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "referenceSampleRate": {
+            "const": 48000,
+            "type": "number"
+          },
+          "startFrame": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "endFrame": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "enabled",
+          "referenceSampleRate",
+          "startFrame",
+          "endFrame"
+        ],
+        "additionalProperties": false,
+        "description": "Frame interval [startFrame,endFrame), relative to the valid master at referenceSampleRate; endFrame must be > startFrame and within every referenced file."
+      },
+      "AudioFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "description": "Package-relative path. Request using the files base URL and URL-encode each path segment.",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_./-]*$"
+          },
+          "sha256": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "decodedPcmBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "itemId": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sfx",
+              "music"
+            ]
+          },
+          "formatId": {
+            "type": "string",
+            "enum": [
+              "opus-ogg",
+              "aac-lc-m4a"
+            ]
+          },
+          "container": {
+            "type": "string",
+            "enum": [
+              "ogg",
+              "mp4"
+            ]
+          },
+          "codec": {
+            "type": "string",
+            "enum": [
+              "opus",
+              "aac-lc"
+            ]
+          },
+          "sampleRate": {
+            "const": 48000,
+            "type": "number"
+          },
+          "channels": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "frames": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "decodedFrames": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "durationSeconds": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": 0
+          },
+          "encoding": {
+            "type": "object",
+            "properties": {
+              "encoder": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "targetBitrateKbps": {
+                "type": "integer",
+                "enum": [
+                  32,
+                  48,
+                  64,
+                  96
+                ]
+              },
+              "rateControl": {
+                "type": "string",
+                "enum": [
+                  "vbr",
+                  "target-bitrate"
+                ]
+              },
+              "profile": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "encoder",
+              "version",
+              "targetBitrateKbps",
+              "rateControl"
+            ],
+            "additionalProperties": false
+          },
+          "trim": {
+            "type": "object",
+            "properties": {
+              "referenceSampleRate": {
+                "const": 48000,
+                "type": "number"
+              },
+              "masterFrames": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "leadingPaddingFrames": {
+                "const": 0,
+                "type": "number"
+              },
+              "trailingPaddingFrames": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "startFrame": {
+                "const": 0,
+                "type": "number"
+              },
+              "endFrame": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "decodedFrames": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "priming": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "referenceSampleRate",
+              "masterFrames",
+              "leadingPaddingFrames",
+              "trailingPaddingFrames",
+              "startFrame",
+              "endFrame",
+              "decodedFrames",
+              "priming"
+            ],
+            "additionalProperties": false
+          },
+          "loop": {
+            "$ref": "#/components/schemas/Loop"
+          },
+          "group": {
+            "type": "string",
+            "enum": [
+              "mix",
+              "core",
+              "texture",
+              "rhythm"
+            ]
+          },
+          "quality": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "master": {
+            "type": "object",
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "description": "SHA-256, lowercase hexadecimal.",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "frames": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "format": {
+                "const": "wav-float32",
+                "type": "string"
+              },
+              "sourceTrim": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "sha256",
+              "frames",
+              "format"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "sha256",
+          "bytes",
+          "mimeType",
+          "decodedPcmBytes",
+          "itemId",
+          "kind",
+          "formatId",
+          "container",
+          "codec",
+          "sampleRate",
+          "channels",
+          "frames",
+          "encoding"
+        ],
+        "additionalProperties": false,
+        "description": "frames means effective valid master frames; decodedPcmBytes uses decoded frames * channels * 4, including decoder padding. Trim trailing padding once; container decoders already remove leading AAC priming. Only audio/ MIME files should be decoded."
+      },
+      "ProvenanceFile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "description": "Package-relative path. Request using the files base URL and URL-encode each path segment.",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_./-]*$"
+          },
+          "sha256": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": [
+              "text/plain; charset=utf-8",
+              "application/json"
+            ]
+          },
+          "decodedPcmBytes": {
+            "const": 0,
+            "type": "number"
+          },
+          "kind": {
+            "const": "provenance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "path",
+          "sha256",
+          "bytes",
+          "mimeType",
+          "decodedPcmBytes",
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "SfxMapping": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Stable item or event ID.",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+            "maxLength": 128
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 3,
+            "uniqueItems": true
+          },
+          "maxRatePerSecond": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "spatial": {
+            "$ref": "#/components/schemas/Spatial"
+          }
+        },
+        "required": [
+          "eventId",
+          "variants"
+        ],
+        "additionalProperties": false
+      },
+      "MusicMapping": {
+        "type": "object",
+        "properties": {
+          "scene": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "\\S"
+          },
+          "gainDb": {
+            "type": "number"
+          },
+          "loop": {
+            "$ref": "#/components/schemas/Loop"
+          },
+          "mixFileId": {
+            "type": "string"
+          },
+          "stemFileIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 3,
+            "maxItems": 3,
+            "uniqueItems": true
+          },
+          "stemGainDb": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "stemRoles": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "core",
+                "texture",
+                "rhythm"
+              ]
+            }
+          }
+        },
+        "required": [
+          "scene",
+          "gainDb",
+          "loop"
+        ],
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "required": [
+              "mixFileId"
+            ],
+            "properties": {
+              "mixFileId": {
+                "type": "string"
+              },
+              "stemFileIds": false
+            }
+          },
+          {
+            "required": [
+              "stemFileIds"
+            ],
+            "properties": {
+              "stemFileIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 3,
+                "maxItems": 3,
+                "uniqueItems": true
+              },
+              "mixFileId": false
+            }
+          }
+        ]
+      },
+      "ComponentQuality": {
+        "type": "object",
+        "properties": {
+          "technical": {
+            "const": "passed",
+            "type": "string"
+          },
+          "binding": {
+            "const": "contract-validated",
+            "type": "string"
+          },
+          "listening": {
+            "const": "not-evaluated",
+            "type": "string"
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "technical",
+          "binding",
+          "listening"
+        ],
+        "additionalProperties": true
+      },
+      "MediaManifest": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "kind": {
+            "const": "audio-media-package",
+            "type": "string"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/GameIdentity"
+          },
+          "planId": {
+            "type": "string",
+            "pattern": "^plan-[a-f0-9]{64}$"
+          },
+          "planDigest": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "selectionDigest": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "acceptedItems": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Stable item or event ID.",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+              "maxLength": 128
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "deliveredItems": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Stable item or event ID.",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.:-]{0,127}$",
+              "maxLength": 128
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "requiredReady": {
+            "type": "boolean"
+          },
+          "allSelectedReady": {
+            "type": "boolean"
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/Delivery"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AudioFile"
+                },
+                {
+                  "$ref": "#/components/schemas/ProvenanceFile"
+                }
+              ]
+            },
+            "minItems": 3
+          },
+          "sfx": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SfxMapping"
+            }
+          },
+          "music": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MusicMapping"
+            }
+          },
+          "provenance": {
+            "type": "object",
+            "properties": {
+              "licensesPath": {
+                "const": "provenance/LICENSES.txt",
+                "type": "string"
+              },
+              "assetsPath": {
+                "const": "provenance/assets.json",
+                "type": "string"
+              }
+            },
+            "required": [
+              "licensesPath",
+              "assetsPath"
+            ],
+            "additionalProperties": false
+          },
+          "quality": {
+            "type": "object",
+            "properties": {
+              "technical": {
+                "const": "passed",
+                "type": "string"
+              },
+              "binding": {
+                "const": "contract-validated-gameplay-not-evaluated",
+                "type": "string"
+              },
+              "listening": {
+                "const": "not-evaluated",
+                "type": "string"
+              },
+              "components": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/ComponentQuality"
+                }
+              }
+            },
+            "required": [
+              "technical",
+              "binding",
+              "listening",
+              "components"
+            ],
+            "additionalProperties": false
+          },
+          "budget": {
+            "$ref": "#/components/schemas/MeasuredBudget"
+          },
+          "packageId": {
+            "type": "string",
+            "description": "SHA-256, lowercase hexadecimal.",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "kind",
+          "identity",
+          "planId",
+          "planDigest",
+          "selectionDigest",
+          "acceptedItems",
+          "deliveredItems",
+          "requiredReady",
+          "allSelectedReady",
+          "delivery",
+          "files",
+          "sfx",
+          "music",
+          "provenance",
+          "quality",
+          "budget",
+          "packageId"
+        ],
+        "additionalProperties": false,
+        "description": "The response is this object directly, with no manifest envelope. packageId = SHA-256(canonical JSON of all fields except packageId). File SHA-256 digests bind actual bytes. Transfer budget includes media and the two provenance files, excluding manifest/HTTP transport overhead. Technical pass does not claim listening or gameplay quality."
+      },
+      "DirectorInfo": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "local-rule-based-research-prototype",
+              "configured-algorithm-module",
+              "openai-compatible"
+            ]
+          },
+          "modelConnected": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "modelConnected"
+        ],
+        "additionalProperties": false
+      },
+      "RendererStatus": {
+        "type": "object",
+        "properties": {
+          "ready": {
+            "type": "boolean"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "renderer": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "encoding": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ready"
+        ],
+        "additionalProperties": true
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "serviceVersion": {
+            "const": "audio-service-v1",
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "renderer": {
+            "$ref": "#/components/schemas/RendererStatus"
+          },
+          "director": {
+            "$ref": "#/components/schemas/DirectorInfo"
+          },
+          "persistence": {
+            "const": "local-filesystem-single-service-process",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "serviceVersion",
+          "status",
+          "renderer",
+          "director",
+          "persistence"
+        ],
+        "additionalProperties": false
+      },
+      "CapabilitiesResponse": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1,
+            "type": "number"
+          },
+          "apiVersion": {
+            "const": "v1",
+            "type": "string"
+          },
+          "serviceVersion": {
+            "const": "audio-service-v1",
+            "type": "string"
+          },
+          "formats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Format"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "cozy",
+                "neon",
+                "ruins"
+              ]
+            }
+          },
+          "spatialCapability": {
+            "type": "string",
+            "const": "optional-HRTF-distance-panning-without-occlusion"
+          },
+          "musicPolicy": {
+            "const": "shared-theme-per-plan",
+            "type": "string"
+          },
+          "director": {
+            "$ref": "#/components/schemas/DirectorInfo"
+          },
+          "renderer": {
+            "$ref": "#/components/schemas/RendererStatus"
+          },
+          "limits": {
+            "type": "object",
+            "properties": {
+              "requestBytes": {
+                "const": 262144,
+                "type": "number"
+              },
+              "items": {
+                "const": 32,
+                "type": "number"
+              },
+              "events": {
+                "const": 64,
+                "type": "number"
+              },
+              "variants": {
+                "const": 3,
+                "type": "number"
+              },
+              "musicSlots": {
+                "const": 4,
+                "type": "number"
+              },
+              "durationSeconds": {
+                "const": 65,
+                "type": "number"
+              },
+              "maxTransferBytes": {
+                "const": 67108864,
+                "type": "number"
+              },
+              "maxDecodedPcmBytes": {
+                "const": 268435456,
+                "type": "number"
+              }
+            },
+            "required": [
+              "requestBytes",
+              "items",
+              "events",
+              "variants",
+              "musicSlots",
+              "durationSeconds",
+              "maxTransferBytes",
+              "maxDecodedPcmBytes"
+            ],
+            "additionalProperties": false
+          },
+          "legacyBridgeSpatialCapability": {
+            "type": "string",
+            "const": "stereo-pan-only"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "apiVersion",
+          "serviceVersion",
+          "formats",
+          "profiles",
+          "spatialCapability",
+          "musicPolicy",
+          "director",
+          "renderer",
+          "limits",
+          "legacyBridgeSpatialCapability"
+        ],
+        "additionalProperties": false,
+        "description": "Running service capabilities. Positional playback is optional for explicitly spatial mono SFX and has no occlusion. The legacy source-only bridge is stereo-pan-only."
+      },
+      "AlgorithmIdentity": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "local-rule-based"
+              },
+              "version": {
+                "const": "seeded-v1"
+              }
+            },
+            "required": [
+              "kind",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "configured-algorithm-module"
+              },
+              "version": {
+                "type": "string"
+              },
+              "sourceHash": {
+                "$ref": "#/components/schemas/GameIdentity/properties/briefHash"
+              }
+            },
+            "required": [
+              "kind",
+              "version",
+              "sourceHash"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "openai-compatible"
+              },
+              "version": {
+                "const": "style-direction-v1"
+              },
+              "model": {
+                "type": "string"
+              },
+              "endpointHash": {
+                "$ref": "#/components/schemas/GameIdentity/properties/briefHash"
+              }
+            },
+            "required": [
+              "kind",
+              "version",
+              "model",
+              "endpointHash"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "x-workflow": {
+    "planDigest": "SHA256(canonicalJson(plan without planId, planDigest, status))",
+    "selectionDigest": "SHA256(canonicalJson({planDigest, acceptedItems: sortedUniqueItemIds, delivery: completeNormalizedDelivery}))",
+    "packageId": "SHA256(canonicalJson(manifest without packageId))",
+    "terminalStatuses": [
+      "ready",
+      "partial-ready",
+      "failed",
+      "cancelled"
+    ],
+    "writeRate": {
+      "requests": 60,
+      "windowSeconds": 60,
+      "scope": "authenticated-owner"
+    },
+    "queueDefaults": {
+      "perOwner": 16,
+      "global": 64
+    },
+    "cors": {
+      "allowlistEnvironment": "GAME_AUDIO_ALLOWED_ORIGINS",
+      "credentials": "Bearer only; credentials:omit",
+      "preflightWithoutAuthentication": true
+    }
+  }
+}

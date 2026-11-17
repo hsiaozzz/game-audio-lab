@@ -76,6 +76,25 @@ export function validateGameAudioJoin(gameIdentity, audioIdentity) {
   return { accepted: true };
 }
 
+/** Boundary for trusted algorithm plugins: data only, with bounded renderer work. */
+export function validateComposedScore(input, brief) {
+  if (!record(input)) throw new TypeError('Composer must return a plain score object');
+  const score = clone(input), instruments = new Set(['marimba','fmBell','softKeys','pad','bass','lead','pluck','kick','snare','hat','shaker']);
+  if (score.bpm !== brief.bpm || score.bars !== brief.bars || score.meter !== brief.meter || !Number.isFinite(score.duration) || Math.abs(score.duration - score.bars * score.meter * 60 / score.bpm) > .001) throw new TypeError('Composer score timing differs from the approved audio brief');
+  if (!Array.isArray(score.tracks) || !score.tracks.length || score.tracks.length > 16) throw new TypeError('Composer must return 1..16 tracks');
+  let events = 0; const ids = new Set();
+  for (const track of score.tracks) {
+    if (!record(track) || typeof track.id !== 'string' || !track.id || ids.has(track.id) || !instruments.has(track.instrument) || !['lead','harmony','bass','drums','ornament','pad','theme'].includes(track.role) || !Number.isFinite(track.pan) || Math.abs(track.pan) > 1 || !Number.isFinite(track.gainDb) || track.gainDb < -60 || track.gainDb > 0 || !Array.isArray(track.events)) throw new TypeError('Composer contains an unsupported track');
+    ids.add(track.id);
+    for (const event of track.events) {
+      if (++events > 10000 || !record(event) || !Number.isFinite(event.beat) || event.beat < 0 || event.beat >= score.bars * score.meter || !Number.isFinite(event.durationBeats) || event.durationBeats <= 0 || event.durationBeats > score.meter * 4 || !Number.isFinite(event.midi) || event.midi < 0 || event.midi > 127 || !Number.isFinite(event.velocity) || event.velocity < 0 || event.velocity > 1) throw new TypeError('Composer score contains an invalid or excessive event');
+    }
+  }
+  score.brief = clone(brief);
+  score.statistics = { ...score.statistics, eventCount: events };
+  return score;
+}
+
 /** No network/model dependency. A trusted future director can be injected explicitly. */
 export async function createAudioPlan(gameBrief, eventContract, options = {}) {
   if (!record(options)) throw new TypeError('Audio plan options must be an object');
@@ -90,7 +109,10 @@ export async function createAudioPlan(gameBrief, eventContract, options = {}) {
   const bindings = Object.fromEntries(contract.events.filter(event => event.cue !== null).map(event => [event.id, { cue: event.cue, required: event.required, maxRatePerSecond: event.maxRatePerSecond }]));
   // The shared contract exclusively controls bindings; local profile aliases are not used.
   const audioBrief = clone({ ...directed, prompt: brief.prompt, eventBindings: Object.fromEntries(Object.entries(bindings).map(([id, binding]) => [id, binding.cue])), sceneStates: contract.sceneStates });
-  const score = composeScore(audioBrief);
+  if (options.composer !== undefined && typeof options.composer !== 'function') throw new TypeError('composer must be a trusted function');
+  const score = options.composer
+    ? validateComposedScore(await options.composer(clone(audioBrief), { gameBrief: clone(brief), eventContract: clone(contract) }), audioBrief)
+    : composeScore(audioBrief);
   const audioSpec = {
     style: audioBrief.style, bpm: score.bpm, rootMidi: audioBrief.rootMidi, mode: audioBrief.mode,
     bars: score.bars, meter: score.meter, durationSeconds: score.duration, seed: audioBrief.seed,
@@ -104,7 +126,7 @@ export async function createAudioPlan(gameBrief, eventContract, options = {}) {
   score.pipeline = { schemaVersion: 1, ...identity, planId, compilerVersion: PIPELINE_VERSIONS.compiler, soundBankVersion: PIPELINE_VERSIONS.soundBank };
   return deepFreeze({
     schemaVersion: 1, kind: 'game-audio-plan', ...identity, planId, seed: audioBrief.seed,
-    compilerVersion: PIPELINE_VERSIONS.compiler, composerVersion: PIPELINE_VERSIONS.composer, soundBankVersion: PIPELINE_VERSIONS.soundBank,
+    compilerVersion: PIPELINE_VERSIONS.compiler, composerVersion: options.composer ? text(options.composerVersion ?? 'injected-composer-v1', 'composerVersion', 128) : PIPELINE_VERSIONS.composer, soundBankVersion: PIPELINE_VERSIONS.soundBank,
     director: { kind: options.director ? 'injected-director' : 'local-rule-based-research-prototype', version: options.director ? null : PIPELINE_VERSIONS.director, modelConnected: options.director ? null : false, detail: audioBrief.director ?? null },
     gameBrief: brief, eventContract: contract, audioSpec, score, scoreHash: await hashCanonical(score), bindings,
     unmappedOptionalEvents: contract.events.filter(event => event.cue === null).map(event => event.id),

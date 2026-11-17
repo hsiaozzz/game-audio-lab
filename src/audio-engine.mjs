@@ -313,3 +313,23 @@ export function encodeWav(buffer){
  write(0,'RIFF');view.setUint32(4,bytes.byteLength-8,true);write(8,'WAVE');write(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels,true);view.setUint32(24,buffer.sampleRate,true);view.setUint32(28,buffer.sampleRate*channels*2,true);view.setUint16(32,channels*2,true);view.setUint16(34,16,true);write(36,'data');view.setUint32(40,length*channels*2,true);
  const data=Array.from({length:channels},(_,ch)=>buffer.getChannelData(ch));let offset=44;for(let i=0;i<length;i++)for(let ch=0;ch<channels;ch++){const value=clamp(data[ch][i],-1,1);view.setInt16(offset,Math.round(value*(value<0?32768:32767)),true);offset+=2;}return bytes;
 }
+
+/** Single requested cue for service delivery. Existing recipes and reel exports stay unchanged. */
+export async function renderSfxItem(brief,{cue,variant=0,sampleRate=48000,mode='hybrid'}={}){
+ brief=normalizedSfxBrief(brief);
+ const cues=['ui','collect','cast','splash','footstep','footstepWood','hit','laser','charge','explosion','victory','failure'];
+ if(!cues.includes(cue))throw new TypeError('Unknown delivery cue: '+cue);
+ if(!Number.isSafeInteger(variant)||variant<0||variant>2)throw new RangeError('SFX variant must be 0, 1 or 2');
+ if(!['synth','hybrid'].includes(mode))throw new TypeError('Unsupported SFX rendering mode');
+ if(!Number.isFinite(sampleRate)||sampleRate<8000||sampleRate>96000)throw new RangeError('Invalid SFX sampleRate');
+ const bank=mode==='hybrid'?await loadSoundBank():undefined,sample=bank?.buffers.get(cue),preRoll=.02;
+ const horizon=preRoll+Math.max(1.5,(sample?.duration||0)/.975+.1)+.5;
+ const context=new OfflineAudioContext(2,Math.ceil(horizon*sampleRate),sampleRate),bus=context.createGain();bus.gain.value=1;bus.connect(context.destination);
+ const voice=sfxVoice(context,bus,cue,{when:preRoll,bank,rootMidi:brief.rootMidi,mode:brief.mode,variant});
+ const rendered=await context.startRendering(),start=Math.round(preRoll*sampleRate),threshold=1e-5,tailFrames=Math.ceil(.05*sampleRate);let last=start;
+ for(let ch=0;ch<rendered.numberOfChannels;ch++){const values=rendered.getChannelData(ch);for(let index=values.length-1;index>=start;index--)if(Math.abs(values[index])>threshold){last=Math.max(last,index);break;}}
+ if(last>=rendered.length-tailFrames)throw new Error('SFX render horizon would truncate its tail');
+ const end=Math.min(rendered.length,last+1+tailFrames),buffer=new AudioBuffer({length:end-start,numberOfChannels:2,sampleRate});
+ for(let ch=0;ch<2;ch++)buffer.copyToChannel(rendered.getChannelData(ch).subarray(start,end),ch);
+ return{buffer,cue,variant,source:voice.source,stats:bufferMetrics(buffer),trim:{scheduledPreRollFrames:start,removedTrailingFrames:rendered.length-end,retainedTailFrames:tailFrames,thresholdAmplitude:threshold,method:'remove scheduled pre-roll; retain every sample above -100 dBFS and 50 ms of tail'}};
+}

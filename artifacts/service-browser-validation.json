@@ -1,0 +1,1706 @@
+{
+  "createdAt": "2026-11-17T03:30:50.322Z",
+  "script": "scripts/check-audio-browser.mjs",
+  "purpose": "Dedicated Chromium integration: actual HTTP media delivery, native decode/playback, independent ZIP, mobile layout, game resilience and HRTF distance attenuation.",
+  "qualityScope": "Technical verification only; no subjective listening score or claim about arbitrary games.",
+  "pass": true,
+  "checks": [
+    {
+      "name": "delivery page does not load Tone.js or a generator runtime",
+      "pass": true
+    },
+    {
+      "name": "game responds before sound preparation",
+      "pass": true
+    },
+    {
+      "name": "native browser codec probe and explicit delivery-plan review",
+      "pass": true,
+      "detail": "真实解码通过：opus-ogg → aac-lc-m4a。探针只解码，不播放。"
+    },
+    {
+      "name": "fresh service delivers hashed Opus/AAC media and browser decodes all selected files",
+      "pass": true,
+      "detail": {
+        "files": 11,
+        "transferBytes": 1164762,
+        "decodedPcmBytes": 48439696
+      }
+    },
+    {
+      "name": "short effects become locally usable before the complete music delivery",
+      "pass": true,
+      "detail": {
+        "verifiedFiles": 4,
+        "jobStatus": "rendering"
+      }
+    },
+    {
+      "name": "real click unlocks native Web Audio and three synchronized stems produce nonzero output",
+      "pass": true,
+      "detail": {
+        "contextState": "running",
+        "rms": 0.009308224626272829,
+        "peak": 0.0615653470158577,
+        "player": {
+          "disposed": false,
+          "unlocked": true,
+          "contextState": "running",
+          "muted": false,
+          "paused": false,
+          "intensity": 0.35,
+          "scene": null,
+          "musicPlaying": true,
+          "musicItemId": "bgm.exploration",
+          "musicOffset": 0.009333333333330529,
+          "activeVoices": 1,
+          "musicSources": 3,
+          "eventCount": 1,
+          "packageId": "c19ac9de63f06cd13bc6c1fd75eebf85364f926501c8d19139ac98f2d2770d95",
+          "loadedFiles": 9,
+          "eventIds": [
+            "item.collect",
+            "player.hit",
+            "ui.confirm"
+          ],
+          "musicIds": [
+            "bgm.exploration"
+          ],
+          "spatialCapability": "HRTF-distance-panning-without-occlusion",
+          "listenerPose": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "forward": {
+              "x": 0,
+              "y": 0,
+              "z": -1
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "offline local playback, semantic events, pause/resume, mute and intensity make zero requests",
+      "pass": true
+    },
+    {
+      "name": "mobile layout fits a 390 px viewport with a usable play control",
+      "pass": true,
+      "detail": {
+        "width": 390,
+        "scrollWidth": 390,
+        "planButton": {
+          "x": 32,
+          "y": -77,
+          "width": 326,
+          "height": 43,
+          "top": -77,
+          "right": 358,
+          "bottom": -34,
+          "left": 32
+        },
+        "playButton": {
+          "x": 32,
+          "y": 780.4375,
+          "width": 173,
+          "height": 43,
+          "top": 780.4375,
+          "right": 205,
+          "bottom": 823.4375,
+          "left": 32
+        }
+      }
+    },
+    {
+      "name": "actual ZIP download has a readable directory and valid CRCs for every file",
+      "pass": true,
+      "detail": {
+        "files": 16
+      }
+    },
+    {
+      "name": "exported standalone runtime loads only local files and plays offline without Tone or the service",
+      "pass": true
+    },
+    {
+      "name": "real HRTF PannerNode reduces the same delivered SFX at ten metres",
+      "pass": true,
+      "detail": {
+        "planId": "plan-bb497f0ab43d3926077ab4c65899043cd49bad45b49f8e09d0de0702006637d9",
+        "packageId": "d3419cc595ff63e01a894291024cf46f1dc44e7e998d2389fe39a43da4f340cd",
+        "near": {
+          "distance": 1,
+          "rms": 0.019879321381226424,
+          "peak": 0.19414494931697845
+        },
+        "far": {
+          "distance": 10,
+          "rms": 0.001987932172247611,
+          "peak": 0.019414495676755905
+        },
+        "ratio": 0.10000000171660632,
+        "scope": "Native OfflineAudioContext plus the actual package player and HRTF PannerNode. Distance attenuation only; no Three.js scene or occlusion claim."
+      }
+    },
+    {
+      "name": "a genuine failed service response leaves the fixed game responsive",
+      "pass": true
+    },
+    {
+      "name": "final disposal releases native sources and stops the runtime",
+      "pass": true
+    }
+  ],
+  "skipped": [],
+  "pageErrors": [],
+  "sourceHashes": {
+    "delivery.html": "e2c483cc494891b2ce5cca88ec94c908cb09bdfea21c5375be5b6d6a29fe083a",
+    "src/audio-service-client.mjs": "ec9bf95030d236b4e5fa4b6022dc8ded4c9f7e03f6fd22166c4c1e266604599e",
+    "src/audio-package-player.mjs": "5d03f2ed28cb570ff3cc859d1936011f386ce2b8ae4280e76f3f2e37f7ece58b",
+    "src/audio-package-export.mjs": "f81cef3654c7d481c87db4447d78bb1e5a3794405e6fb19d9fb283f2511ebc51",
+    "src/delivery-demo.mjs": "67702f5ac22fa85276e5b639de3425f32770b8be4639619024f41f13ca48be21",
+    "src/delivery-demo.css": "4ed255aad917ec2ff3eec88e81f6289377807a62c7c522470e0dde390201a858",
+    "src/service-render-worker.mjs": "23e9f30d862c6705d03335d23e875d6bc8752afc8e6006726ffe2b4a1d19c199",
+    "src/audio-engine.mjs": "36daf727b0e4c8a5abeef21e19cef367453ec5d146284ade8734c7f2372059d3",
+    "src/game-audio-pipeline.mjs": "43f75a81cdf7c1bc16a9296791a5a49349de0e1ecbdf347ddf8002772c41ec3b",
+    "src/composer.mjs": "43e6643897482f844af3f9908d19cce6ffc78a16b6cee1cb15b2204cbbbc283d",
+    "src/director.mjs": "e0219adbaa8bdf12492aa72f24910cc12c2a7f6eed5bb8aec6d409d0470af9ce",
+    "scripts/server.mjs": "3bc44c2c9f3417aaec97dc92e837e008009708ed8ed5b963c69dc35d89bb4631",
+    "scripts/check-audio-browser.mjs": "ad37adaef5884672edb89eb56d9a7377efcabfe0ad25b1e2e619e335bf0b34cd",
+    "assets/manifest.json": "2b1df0641cc164805d8680c577b745d1fd0916b89a4d8bfbe74bd138dfd44354",
+    "vendor/Tone.js": "e290952fa43d9a7a780182a83c6fccf44d79cb7ae2cba102ef1f2b9d98124e22",
+    "server/audio-api.mjs": "fa61aadb265060ca0cfe666f1cdde9e972a001e67d9e5e9b58ebaf970e015c3d",
+    "server/audio-director.mjs": "0534a2dd6c1a0264b9433f55b2b28af27437bef8883f53cfb447c2f88c0a1667",
+    "server/audio-jobs.mjs": "645e6492514cf919839fafd340b5add7748ab92326c6e939a6d573720f71ba91",
+    "server/audio-media.mjs": "13d496edaf2bcd3f5deb8e4fedd23772bb1d11b105b217501d2b76c9bb6005a3",
+    "server/audio-plan.mjs": "4e9dffca2449b5d3f77982080557f905c05d2ea304f86727972eea1954f0aee2",
+    "server/audio-renderer.mjs": "be23a95e5c6abe48ed1988d63e46513da8a6e9f791667b586f951454c9d85c48"
+  },
+  "backendMode": "fresh-isolated-service",
+  "origin": "http://127.0.0.1:9447",
+  "browserVersion": "153.0.8010.12",
+  "plan": {
+    "planId": "plan-5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+    "identity": {
+      "projectId": "media-delivery-demo",
+      "revision": 1,
+      "briefHash": "f20599f625087a1eba7609426bacfb63c6009e208d7b206d52511730c859e996",
+      "contractVersion": 1,
+      "contractHash": "04ad72699077e456ead846a3482a8be694f084d19eec5bfffb0ad0d2a5055a68"
+    },
+    "items": [
+      {
+        "id": "bgm.exploration",
+        "kind": "music",
+        "required": true,
+        "formatId": "opus-ogg",
+        "sampleRate": 48000,
+        "scene": "exploration",
+        "loop": true,
+        "playback": "stems",
+        "variants": 1,
+        "channels": 2,
+        "bitrateKbps": 64,
+        "durationSeconds": 41.73913043478261,
+        "contentPolicy": "shared-theme-per-plan"
+      },
+      {
+        "id": "sfx.item.collect",
+        "kind": "sfx",
+        "required": true,
+        "formatId": "opus-ogg",
+        "sampleRate": 48000,
+        "eventId": "item.collect",
+        "cue": "collect",
+        "maxRatePerSecond": 6,
+        "variants": 2,
+        "channels": 1,
+        "spatial": {
+          "enabled": false
+        },
+        "bitrateKbps": 48,
+        "estimatedDurationSeconds": 0.8
+      },
+      {
+        "id": "sfx.player.hit",
+        "kind": "sfx",
+        "required": true,
+        "formatId": "opus-ogg",
+        "sampleRate": 48000,
+        "eventId": "player.hit",
+        "cue": "hit",
+        "maxRatePerSecond": 3,
+        "variants": 2,
+        "channels": 1,
+        "spatial": {
+          "enabled": false
+        },
+        "bitrateKbps": 48,
+        "estimatedDurationSeconds": 0.8
+      },
+      {
+        "id": "sfx.ui.confirm",
+        "kind": "sfx",
+        "required": true,
+        "formatId": "opus-ogg",
+        "sampleRate": 48000,
+        "eventId": "ui.confirm",
+        "cue": "ui",
+        "maxRatePerSecond": 4,
+        "variants": 2,
+        "channels": 1,
+        "spatial": {
+          "enabled": false
+        },
+        "bitrateKbps": 48,
+        "estimatedDurationSeconds": 0.8
+      }
+    ],
+    "decoderProbe": "真实解码通过：opus-ogg → aac-lc-m4a。探针只解码，不播放。"
+  },
+  "delivery": {
+    "state": {
+      "planning": false,
+      "working": false,
+      "loadingPackage": false,
+      "disposed": false,
+      "planId": "plan-5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+      "planDigest": "5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+      "identity": {
+        "projectId": "media-delivery-demo",
+        "revision": 1,
+        "briefHash": "f20599f625087a1eba7609426bacfb63c6009e208d7b206d52511730c859e996",
+        "contractVersion": 1,
+        "contractHash": "04ad72699077e456ead846a3482a8be694f084d19eec5bfffb0ad0d2a5055a68"
+      },
+      "jobId": "1e80b23d-bfcf-4e5e-a53b-2a4d03da68cc",
+      "jobStatus": "ready",
+      "requiredReady": true,
+      "allSelectedReady": true,
+      "verifiedFiles": 11,
+      "transferBytes": 1164762,
+      "decodedPcmBytes": 48439696,
+      "packageId": "c19ac9de63f06cd13bc6c1fd75eebf85364f926501c8d19139ac98f2d2770d95",
+      "counts": {
+        "collect": 1,
+        "hit": 0,
+        "accepted": 0
+      },
+      "player": {
+        "disposed": false,
+        "unlocked": false,
+        "contextState": "uninitialized",
+        "muted": false,
+        "paused": false,
+        "intensity": 0.35,
+        "scene": null,
+        "musicPlaying": false,
+        "musicItemId": null,
+        "musicOffset": 0,
+        "activeVoices": 0,
+        "musicSources": 0,
+        "eventCount": 0,
+        "packageId": "c19ac9de63f06cd13bc6c1fd75eebf85364f926501c8d19139ac98f2d2770d95",
+        "loadedFiles": 9,
+        "eventIds": [
+          "item.collect",
+          "player.hit",
+          "ui.confirm"
+        ],
+        "musicIds": [
+          "bgm.exploration"
+        ],
+        "spatialCapability": "HRTF-distance-panning-without-occlusion",
+        "listenerPose": {
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "forward": {
+            "x": 0,
+            "y": 0,
+            "z": -1
+          },
+          "up": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          }
+        }
+      },
+      "capabilityFormats": [
+        "opus-ogg",
+        "aac-lc-m4a"
+      ]
+    },
+    "transitions": [
+      {
+        "at": 807.0999999940395,
+        "planning": false,
+        "working": true,
+        "loadingPackage": false,
+        "disposed": false,
+        "planId": "plan-5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "planDigest": "5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "identity": {
+          "projectId": "media-delivery-demo",
+          "revision": 1,
+          "briefHash": "f20599f625087a1eba7609426bacfb63c6009e208d7b206d52511730c859e996",
+          "contractVersion": 1,
+          "contractHash": "04ad72699077e456ead846a3482a8be694f084d19eec5bfffb0ad0d2a5055a68"
+        },
+        "jobId": "1e80b23d-bfcf-4e5e-a53b-2a4d03da68cc",
+        "jobStatus": "rendering",
+        "requiredReady": false,
+        "allSelectedReady": false,
+        "verifiedFiles": 0,
+        "transferBytes": 0,
+        "decodedPcmBytes": 0,
+        "packageId": null,
+        "counts": {
+          "collect": 1,
+          "hit": 0,
+          "accepted": 0
+        },
+        "player": {
+          "disposed": false,
+          "unlocked": false,
+          "contextState": "uninitialized",
+          "muted": false,
+          "paused": false,
+          "intensity": 0.35,
+          "scene": null,
+          "musicPlaying": false,
+          "musicItemId": null,
+          "musicOffset": 0,
+          "activeVoices": 0,
+          "musicSources": 0,
+          "eventCount": 0,
+          "packageId": null,
+          "loadedFiles": 0,
+          "eventIds": [],
+          "musicIds": [],
+          "spatialCapability": "HRTF-distance-panning-without-occlusion",
+          "listenerPose": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "forward": {
+              "x": 0,
+              "y": 0,
+              "z": -1
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        "capabilityFormats": [
+          "opus-ogg",
+          "aac-lc-m4a"
+        ]
+      },
+      {
+        "at": 3289,
+        "planning": false,
+        "working": true,
+        "loadingPackage": false,
+        "disposed": false,
+        "planId": "plan-5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "planDigest": "5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "identity": {
+          "projectId": "media-delivery-demo",
+          "revision": 1,
+          "briefHash": "f20599f625087a1eba7609426bacfb63c6009e208d7b206d52511730c859e996",
+          "contractVersion": 1,
+          "contractHash": "04ad72699077e456ead846a3482a8be694f084d19eec5bfffb0ad0d2a5055a68"
+        },
+        "jobId": "1e80b23d-bfcf-4e5e-a53b-2a4d03da68cc",
+        "jobStatus": "rendering",
+        "requiredReady": false,
+        "allSelectedReady": false,
+        "verifiedFiles": 4,
+        "transferBytes": 17501,
+        "decodedPcmBytes": 167040,
+        "packageId": "88eb6922ec852f56570a107183770a8f9cf1f05af597adec64464594ab981ae0",
+        "counts": {
+          "collect": 1,
+          "hit": 0,
+          "accepted": 0
+        },
+        "player": {
+          "disposed": false,
+          "unlocked": false,
+          "contextState": "uninitialized",
+          "muted": false,
+          "paused": false,
+          "intensity": 0.35,
+          "scene": null,
+          "musicPlaying": false,
+          "musicItemId": null,
+          "musicOffset": 0,
+          "activeVoices": 0,
+          "musicSources": 0,
+          "eventCount": 0,
+          "packageId": "88eb6922ec852f56570a107183770a8f9cf1f05af597adec64464594ab981ae0",
+          "loadedFiles": 2,
+          "eventIds": [
+            "item.collect"
+          ],
+          "musicIds": [],
+          "spatialCapability": "HRTF-distance-panning-without-occlusion",
+          "listenerPose": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "forward": {
+              "x": 0,
+              "y": 0,
+              "z": -1
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        "capabilityFormats": [
+          "opus-ogg",
+          "aac-lc-m4a"
+        ]
+      },
+      {
+        "at": 4569,
+        "planning": false,
+        "working": true,
+        "loadingPackage": false,
+        "disposed": false,
+        "planId": "plan-5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "planDigest": "5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "identity": {
+          "projectId": "media-delivery-demo",
+          "revision": 1,
+          "briefHash": "f20599f625087a1eba7609426bacfb63c6009e208d7b206d52511730c859e996",
+          "contractVersion": 1,
+          "contractHash": "04ad72699077e456ead846a3482a8be694f084d19eec5bfffb0ad0d2a5055a68"
+        },
+        "jobId": "1e80b23d-bfcf-4e5e-a53b-2a4d03da68cc",
+        "jobStatus": "rendering",
+        "requiredReady": false,
+        "allSelectedReady": false,
+        "verifiedFiles": 6,
+        "transferBytes": 22512,
+        "decodedPcmBytes": 304384,
+        "packageId": "146e9273d83e6e1c924e7fe69ccdb222061702772cb7a26317488f8f8d30cdf9",
+        "counts": {
+          "collect": 1,
+          "hit": 0,
+          "accepted": 0
+        },
+        "player": {
+          "disposed": false,
+          "unlocked": false,
+          "contextState": "uninitialized",
+          "muted": false,
+          "paused": false,
+          "intensity": 0.35,
+          "scene": null,
+          "musicPlaying": false,
+          "musicItemId": null,
+          "musicOffset": 0,
+          "activeVoices": 0,
+          "musicSources": 0,
+          "eventCount": 0,
+          "packageId": "146e9273d83e6e1c924e7fe69ccdb222061702772cb7a26317488f8f8d30cdf9",
+          "loadedFiles": 4,
+          "eventIds": [
+            "item.collect",
+            "player.hit"
+          ],
+          "musicIds": [],
+          "spatialCapability": "HRTF-distance-panning-without-occlusion",
+          "listenerPose": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "forward": {
+              "x": 0,
+              "y": 0,
+              "z": -1
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        "capabilityFormats": [
+          "opus-ogg",
+          "aac-lc-m4a"
+        ]
+      },
+      {
+        "at": 5768.399999976158,
+        "planning": false,
+        "working": true,
+        "loadingPackage": false,
+        "disposed": false,
+        "planId": "plan-5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "planDigest": "5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "identity": {
+          "projectId": "media-delivery-demo",
+          "revision": 1,
+          "briefHash": "f20599f625087a1eba7609426bacfb63c6009e208d7b206d52511730c859e996",
+          "contractVersion": 1,
+          "contractHash": "04ad72699077e456ead846a3482a8be694f084d19eec5bfffb0ad0d2a5055a68"
+        },
+        "jobId": "1e80b23d-bfcf-4e5e-a53b-2a4d03da68cc",
+        "jobStatus": "rendering",
+        "requiredReady": false,
+        "allSelectedReady": false,
+        "verifiedFiles": 8,
+        "transferBytes": 25641,
+        "decodedPcmBytes": 356224,
+        "packageId": "2667c21551d7feb6d85faa580ac70c2f5773dadc52a870cc538b7f3f4ce4945a",
+        "counts": {
+          "collect": 1,
+          "hit": 0,
+          "accepted": 0
+        },
+        "player": {
+          "disposed": false,
+          "unlocked": false,
+          "contextState": "uninitialized",
+          "muted": false,
+          "paused": false,
+          "intensity": 0.35,
+          "scene": null,
+          "musicPlaying": false,
+          "musicItemId": null,
+          "musicOffset": 0,
+          "activeVoices": 0,
+          "musicSources": 0,
+          "eventCount": 0,
+          "packageId": "2667c21551d7feb6d85faa580ac70c2f5773dadc52a870cc538b7f3f4ce4945a",
+          "loadedFiles": 6,
+          "eventIds": [
+            "item.collect",
+            "player.hit",
+            "ui.confirm"
+          ],
+          "musicIds": [],
+          "spatialCapability": "HRTF-distance-panning-without-occlusion",
+          "listenerPose": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "forward": {
+              "x": 0,
+              "y": 0,
+              "z": -1
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        "capabilityFormats": [
+          "opus-ogg",
+          "aac-lc-m4a"
+        ]
+      },
+      {
+        "at": 42253.29999998212,
+        "planning": false,
+        "working": true,
+        "loadingPackage": true,
+        "disposed": false,
+        "planId": "plan-5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "planDigest": "5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+        "identity": {
+          "projectId": "media-delivery-demo",
+          "revision": 1,
+          "briefHash": "f20599f625087a1eba7609426bacfb63c6009e208d7b206d52511730c859e996",
+          "contractVersion": 1,
+          "contractHash": "04ad72699077e456ead846a3482a8be694f084d19eec5bfffb0ad0d2a5055a68"
+        },
+        "jobId": "1e80b23d-bfcf-4e5e-a53b-2a4d03da68cc",
+        "jobStatus": "ready",
+        "requiredReady": true,
+        "allSelectedReady": true,
+        "verifiedFiles": 8,
+        "transferBytes": 25641,
+        "decodedPcmBytes": 356224,
+        "packageId": "2667c21551d7feb6d85faa580ac70c2f5773dadc52a870cc538b7f3f4ce4945a",
+        "counts": {
+          "collect": 1,
+          "hit": 0,
+          "accepted": 0
+        },
+        "player": {
+          "disposed": false,
+          "unlocked": false,
+          "contextState": "uninitialized",
+          "muted": false,
+          "paused": false,
+          "intensity": 0.35,
+          "scene": null,
+          "musicPlaying": false,
+          "musicItemId": null,
+          "musicOffset": 0,
+          "activeVoices": 0,
+          "musicSources": 0,
+          "eventCount": 0,
+          "packageId": "2667c21551d7feb6d85faa580ac70c2f5773dadc52a870cc538b7f3f4ce4945a",
+          "loadedFiles": 6,
+          "eventIds": [
+            "item.collect",
+            "player.hit",
+            "ui.confirm"
+          ],
+          "musicIds": [],
+          "spatialCapability": "HRTF-distance-panning-without-occlusion",
+          "listenerPose": {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "forward": {
+              "x": 0,
+              "y": 0,
+              "z": -1
+            },
+            "up": {
+              "x": 0,
+              "y": 1,
+              "z": 0
+            }
+          }
+        },
+        "capabilityFormats": [
+          "opus-ogg",
+          "aac-lc-m4a"
+        ]
+      }
+    ],
+    "status": "已选声音全部制作完成，并可独立交付。",
+    "manifest": {
+      "acceptedItems": [
+        "bgm.exploration",
+        "sfx.item.collect",
+        "sfx.player.hit",
+        "sfx.ui.confirm"
+      ],
+      "allSelectedReady": true,
+      "budget": {
+        "decodedPcmBytes": 48439696,
+        "maxDecodedPcmBytes": 100663296,
+        "maxTransferBytes": 25165824,
+        "measurement": "Actual encoded and provenance file bytes; actual decoded Float32 frames. Manifest transport overhead is excluded.",
+        "transferBytes": 1164762
+      },
+      "deliveredItems": [
+        "bgm.exploration",
+        "sfx.item.collect",
+        "sfx.player.hit",
+        "sfx.ui.confirm"
+      ],
+      "delivery": {
+        "acceptedFormats": [
+          "opus-ogg",
+          "aac-lc-m4a"
+        ],
+        "formatOverrides": {},
+        "maxDecodedPcmBytes": 100663296,
+        "maxTransferBytes": 25165824,
+        "profile": "compact-opus-v1",
+        "quality": "compact",
+        "renderMode": "hybrid",
+        "selection": "one-format-per-item",
+        "sfxQuality": "standard"
+      },
+      "files": [
+        {
+          "bytes": 406082,
+          "channels": 2,
+          "codec": "opus",
+          "container": "ogg",
+          "decodedFrames": 2003478,
+          "decodedPcmBytes": 16027824,
+          "durationSeconds": 41.739125,
+          "encoding": {
+            "encoder": "libopus",
+            "profile": null,
+            "rateControl": "vbr",
+            "targetBitrateKbps": 64,
+            "version": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+          },
+          "formatId": "opus-ogg",
+          "frames": 2003478,
+          "group": "core",
+          "id": "bgm.exploration.file-1",
+          "itemId": "bgm.exploration",
+          "kind": "music",
+          "loop": {
+            "enabled": true,
+            "endFrame": 2003478,
+            "referenceSampleRate": 48000,
+            "startFrame": 0
+          },
+          "master": {
+            "format": "wav-float32",
+            "frames": 2003478,
+            "sha256": "e5418c102545303e1c229104043dcb108af4fe433e749d4ff2d14238c2b87e87"
+          },
+          "mimeType": "audio/ogg; codecs=\"opus\"",
+          "path": "media/bgm-exploration-3a0db19bd0c5/3a0db19bd0c52ed7-core.ogg",
+          "quality": {
+            "decoded": {
+              "clippedSamples": 0,
+              "decodedFrames": 2003478,
+              "loopBoundaryJump": 0.0009292773902416229,
+              "nonfinite": 0,
+              "peak": 0.4785381555557251,
+              "peakDbFS": -6.4016685731381395,
+              "rms": 0.06171755599430408
+            },
+            "listening": "not-evaluated",
+            "loop": "frame-boundaries-recorded; listening-not-evaluated",
+            "nativeMaster": {
+              "channels": 2,
+              "clippedSamples": 0,
+              "durationSeconds": 41.739125,
+              "loopBoundaryJump": 0.00014930358156561852,
+              "nonfinite": 0,
+              "pcmBytes": 16027824,
+              "peak": 0.48409000039100647,
+              "peakDbFS": -6.301477765478428,
+              "rms": 0.06159910005275352,
+              "rmsDbFS": -24.208512654431683,
+              "sampleRate": 48000
+            },
+            "technical": "passed"
+          },
+          "sampleRate": 48000,
+          "sha256": "858c47c3e0cb7bf8643a91ea3d3ebbb2e8dbc6a139ed3ba490f18a0e8a33af0e",
+          "trim": {
+            "decodedFrames": 2003478,
+            "endFrame": 2003478,
+            "leadingPaddingFrames": 0,
+            "masterFrames": 2003478,
+            "priming": "container-signalled; FFmpeg decoder already discards leading encoder priming",
+            "referenceSampleRate": 48000,
+            "startFrame": 0,
+            "trailingPaddingFrames": 0
+          }
+        },
+        {
+          "bytes": 521357,
+          "channels": 2,
+          "codec": "opus",
+          "container": "ogg",
+          "decodedFrames": 2003478,
+          "decodedPcmBytes": 16027824,
+          "durationSeconds": 41.739125,
+          "encoding": {
+            "encoder": "libopus",
+            "profile": null,
+            "rateControl": "vbr",
+            "targetBitrateKbps": 64,
+            "version": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+          },
+          "formatId": "opus-ogg",
+          "frames": 2003478,
+          "group": "texture",
+          "id": "bgm.exploration.file-2",
+          "itemId": "bgm.exploration",
+          "kind": "music",
+          "loop": {
+            "enabled": true,
+            "endFrame": 2003478,
+            "referenceSampleRate": 48000,
+            "startFrame": 0
+          },
+          "master": {
+            "format": "wav-float32",
+            "frames": 2003478,
+            "sha256": "18c876dea1ed51fb435378ede0f9ee5b40400f083eeea3ad6f00864dda73a344"
+          },
+          "mimeType": "audio/ogg; codecs=\"opus\"",
+          "path": "media/bgm-exploration-3a0db19bd0c5/3a0db19bd0c52ed7-texture.ogg",
+          "quality": {
+            "decoded": {
+              "clippedSamples": 0,
+              "decodedFrames": 2003478,
+              "loopBoundaryJump": 0.0019255169900134206,
+              "nonfinite": 0,
+              "peak": 0.12302101403474808,
+              "peakDbFS": -18.20041395010162,
+              "rms": 0.01635025323751234
+            },
+            "listening": "not-evaluated",
+            "loop": "frame-boundaries-recorded; listening-not-evaluated",
+            "nativeMaster": {
+              "channels": 2,
+              "clippedSamples": 0,
+              "durationSeconds": 41.739125,
+              "loopBoundaryJump": 0.0022361663868650794,
+              "nonfinite": 0,
+              "pcmBytes": 16027824,
+              "peak": 0.1215863898396492,
+              "peakDbFS": -18.30230072961254,
+              "rms": 0.016345101566073068,
+              "rmsDbFS": -35.73224752865538,
+              "sampleRate": 48000
+            },
+            "technical": "passed"
+          },
+          "sampleRate": 48000,
+          "sha256": "c3710911419e5dc57ec9f06901fc2322814c01e8919d5680fd852f23f10cedd3",
+          "trim": {
+            "decodedFrames": 2003478,
+            "endFrame": 2003478,
+            "leadingPaddingFrames": 0,
+            "masterFrames": 2003478,
+            "priming": "container-signalled; FFmpeg decoder already discards leading encoder priming",
+            "referenceSampleRate": 48000,
+            "startFrame": 0,
+            "trailingPaddingFrames": 0
+          }
+        },
+        {
+          "bytes": 208324,
+          "channels": 2,
+          "codec": "opus",
+          "container": "ogg",
+          "decodedFrames": 2003478,
+          "decodedPcmBytes": 16027824,
+          "durationSeconds": 41.739125,
+          "encoding": {
+            "encoder": "libopus",
+            "profile": null,
+            "rateControl": "vbr",
+            "targetBitrateKbps": 64,
+            "version": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+          },
+          "formatId": "opus-ogg",
+          "frames": 2003478,
+          "group": "rhythm",
+          "id": "bgm.exploration.file-3",
+          "itemId": "bgm.exploration",
+          "kind": "music",
+          "loop": {
+            "enabled": true,
+            "endFrame": 2003478,
+            "referenceSampleRate": 48000,
+            "startFrame": 0
+          },
+          "master": {
+            "format": "wav-float32",
+            "frames": 2003478,
+            "sha256": "598e65881f69f087521712de1a519c3c8229761657ec4d422a5687588441d221"
+          },
+          "mimeType": "audio/ogg; codecs=\"opus\"",
+          "path": "media/bgm-exploration-3a0db19bd0c5/3a0db19bd0c52ed7-rhythm.ogg",
+          "quality": {
+            "decoded": {
+              "clippedSamples": 0,
+              "decodedFrames": 2003478,
+              "loopBoundaryJump": 6.88902893064558e-11,
+              "nonfinite": 0,
+              "peak": 0.2267404943704605,
+              "peakDbFS": -12.8894182158084,
+              "rms": 0.013949172951184401
+            },
+            "listening": "not-evaluated",
+            "loop": "frame-boundaries-recorded; listening-not-evaluated",
+            "nativeMaster": {
+              "channels": 2,
+              "clippedSamples": 0,
+              "durationSeconds": 41.739125,
+              "loopBoundaryJump": 2.3002700040656398e-17,
+              "nonfinite": 0,
+              "pcmBytes": 16027824,
+              "peak": 0.20962665975093842,
+              "peakDbFS": -13.571069715593577,
+              "rms": 0.013978476303201398,
+              "rmsDbFS": -37.09080330882519,
+              "sampleRate": 48000
+            },
+            "technical": "passed"
+          },
+          "sampleRate": 48000,
+          "sha256": "38ee4a387d04908502ef717d7e33f30c04c368d6fa9c74fb20f8569006d417a3",
+          "trim": {
+            "decodedFrames": 2003478,
+            "endFrame": 2003478,
+            "leadingPaddingFrames": 0,
+            "masterFrames": 2003478,
+            "priming": "container-signalled; FFmpeg decoder already discards leading encoder priming",
+            "referenceSampleRate": 48000,
+            "startFrame": 0,
+            "trailingPaddingFrames": 0
+          }
+        },
+        {
+          "bytes": 2561,
+          "channels": 1,
+          "codec": "opus",
+          "container": "ogg",
+          "decodedFrames": 20880,
+          "decodedPcmBytes": 83520,
+          "durationSeconds": 0.435,
+          "encoding": {
+            "encoder": "libopus",
+            "profile": null,
+            "rateControl": "vbr",
+            "targetBitrateKbps": 48,
+            "version": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+          },
+          "formatId": "opus-ogg",
+          "frames": 20880,
+          "id": "sfx.item.collect.file-1",
+          "itemId": "sfx.item.collect",
+          "kind": "sfx",
+          "master": {
+            "format": "wav-float32",
+            "frames": 20880,
+            "sha256": "6b08b3ca71a0b7e9a57f9efd79927829a1d523977e3068e405703040f02af1a8",
+            "sourceTrim": {
+              "method": "remove scheduled pre-roll; retain every sample above -100 dBFS and 50 ms of tail",
+              "removedTrailingFrames": 75120,
+              "retainedTailFrames": 2400,
+              "scheduledPreRollFrames": 960,
+              "thresholdAmplitude": 0.00001
+            }
+          },
+          "mimeType": "audio/ogg; codecs=\"opus\"",
+          "path": "media/sfx-item-collect-cb2abe1e0ed3/cb2abe1e0ed36087-variant-1.ogg",
+          "quality": {
+            "decoded": {
+              "clippedSamples": 0,
+              "decodedFrames": 20880,
+              "loopBoundaryJump": 0.12795256627487106,
+              "nonfinite": 0,
+              "peak": 0.2729041278362274,
+              "peakDbFS": -11.279797906394089,
+              "rms": 0.03256038430032399
+            },
+            "listening": "not-evaluated",
+            "loop": "frame-boundaries-recorded; listening-not-evaluated",
+            "nativeMaster": {
+              "channels": 2,
+              "clippedSamples": 0,
+              "durationSeconds": 0.435,
+              "loopBoundaryJump": 0.15568405389785767,
+              "nonfinite": 0,
+              "pcmBytes": 167040,
+              "peak": 0.2678687274456024,
+              "peakDbFS": -11.441559709961286,
+              "rms": 0.03298890922519453,
+              "rmsDbFS": -29.632640882370257,
+              "sampleRate": 48000
+            },
+            "technical": "passed"
+          },
+          "sampleRate": 48000,
+          "sha256": "3c35f0d28d40c86ed082e4a023e5138780d0eb2a97167a6a014464c5247ebe7a",
+          "trim": {
+            "decodedFrames": 20880,
+            "endFrame": 20880,
+            "leadingPaddingFrames": 0,
+            "masterFrames": 20880,
+            "priming": "container-signalled; FFmpeg decoder already discards leading encoder priming",
+            "referenceSampleRate": 48000,
+            "startFrame": 0,
+            "trailingPaddingFrames": 0
+          }
+        },
+        {
+          "bytes": 2467,
+          "channels": 1,
+          "codec": "opus",
+          "container": "ogg",
+          "decodedFrames": 20880,
+          "decodedPcmBytes": 83520,
+          "durationSeconds": 0.435,
+          "encoding": {
+            "encoder": "libopus",
+            "profile": null,
+            "rateControl": "vbr",
+            "targetBitrateKbps": 48,
+            "version": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+          },
+          "formatId": "opus-ogg",
+          "frames": 20880,
+          "id": "sfx.item.collect.file-2",
+          "itemId": "sfx.item.collect",
+          "kind": "sfx",
+          "master": {
+            "format": "wav-float32",
+            "frames": 20880,
+            "sha256": "8170598490709b80507b77754f1290301d98f009cadf3100e7f67cd16479adda",
+            "sourceTrim": {
+              "method": "remove scheduled pre-roll; retain every sample above -100 dBFS and 50 ms of tail",
+              "removedTrailingFrames": 75120,
+              "retainedTailFrames": 2400,
+              "scheduledPreRollFrames": 960,
+              "thresholdAmplitude": 0.00001
+            }
+          },
+          "mimeType": "audio/ogg; codecs=\"opus\"",
+          "path": "media/sfx-item-collect-cb2abe1e0ed3/cb2abe1e0ed36087-variant-2.ogg",
+          "quality": {
+            "decoded": {
+              "clippedSamples": 0,
+              "decodedFrames": 20880,
+              "loopBoundaryJump": 0.13049636818323052,
+              "nonfinite": 0,
+              "peak": 0.2606121301651001,
+              "peakDbFS": -11.68010747920967,
+              "rms": 0.03225408218566099
+            },
+            "listening": "not-evaluated",
+            "loop": "frame-boundaries-recorded; listening-not-evaluated",
+            "nativeMaster": {
+              "channels": 2,
+              "clippedSamples": 0,
+              "durationSeconds": 0.435,
+              "loopBoundaryJump": 0.15568405389785767,
+              "nonfinite": 0,
+              "pcmBytes": 167040,
+              "peak": 0.2569696605205536,
+              "peakDbFS": -11.802362984449129,
+              "rms": 0.03272852408949335,
+              "rmsDbFS": -29.701471579902407,
+              "sampleRate": 48000
+            },
+            "technical": "passed"
+          },
+          "sampleRate": 48000,
+          "sha256": "39e35ba4290c0bbecf1e5351e0939e2598523617e1f9814e991a44d4c39a4bd4",
+          "trim": {
+            "decodedFrames": 20880,
+            "endFrame": 20880,
+            "leadingPaddingFrames": 0,
+            "masterFrames": 20880,
+            "priming": "container-signalled; FFmpeg decoder already discards leading encoder priming",
+            "referenceSampleRate": 48000,
+            "startFrame": 0,
+            "trailingPaddingFrames": 0
+          }
+        },
+        {
+          "bytes": 1722,
+          "channels": 1,
+          "codec": "opus",
+          "container": "ogg",
+          "decodedFrames": 17355,
+          "decodedPcmBytes": 69420,
+          "durationSeconds": 0.3615625,
+          "encoding": {
+            "encoder": "libopus",
+            "profile": null,
+            "rateControl": "vbr",
+            "targetBitrateKbps": 48,
+            "version": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+          },
+          "formatId": "opus-ogg",
+          "frames": 17355,
+          "id": "sfx.player.hit.file-1",
+          "itemId": "sfx.player.hit",
+          "kind": "sfx",
+          "master": {
+            "format": "wav-float32",
+            "frames": 17355,
+            "sha256": "55dead1a19aa82b40d6d3b0d1df461cb6782754945209524ad131768e442cb63",
+            "sourceTrim": {
+              "method": "remove scheduled pre-roll; retain every sample above -100 dBFS and 50 ms of tail",
+              "removedTrailingFrames": 78645,
+              "retainedTailFrames": 2400,
+              "scheduledPreRollFrames": 960,
+              "thresholdAmplitude": 0.00001
+            }
+          },
+          "mimeType": "audio/ogg; codecs=\"opus\"",
+          "path": "media/sfx-player-hit-cef704740a9f/cef704740a9fc1aa-variant-1.ogg",
+          "quality": {
+            "decoded": {
+              "clippedSamples": 0,
+              "decodedFrames": 17355,
+              "loopBoundaryJump": 0.1690622151363641,
+              "nonfinite": 0,
+              "peak": 0.2614426612854004,
+              "peakDbFS": -11.652470886821254,
+              "rms": 0.02611280437123308
+            },
+            "listening": "not-evaluated",
+            "loop": "frame-boundaries-recorded; listening-not-evaluated",
+            "nativeMaster": {
+              "channels": 2,
+              "clippedSamples": 0,
+              "durationSeconds": 0.3615625,
+              "loopBoundaryJump": 0.17216147482395172,
+              "nonfinite": 0,
+              "pcmBytes": 138840,
+              "peak": 0.25709104537963867,
+              "peakDbFS": -11.798260996114912,
+              "rms": 0.02652710076976502,
+              "rmsDbFS": -31.526204256664677,
+              "sampleRate": 48000
+            },
+            "technical": "passed"
+          },
+          "sampleRate": 48000,
+          "sha256": "b44ab762b6a62b188bf0cc20bcac53fcdb418cc09520aec1aee833d06c0bf2bd",
+          "trim": {
+            "decodedFrames": 17355,
+            "endFrame": 17355,
+            "leadingPaddingFrames": 0,
+            "masterFrames": 17355,
+            "priming": "container-signalled; FFmpeg decoder already discards leading encoder priming",
+            "referenceSampleRate": 48000,
+            "startFrame": 0,
+            "trailingPaddingFrames": 0
+          }
+        },
+        {
+          "bytes": 1718,
+          "channels": 1,
+          "codec": "opus",
+          "container": "ogg",
+          "decodedFrames": 16981,
+          "decodedPcmBytes": 67924,
+          "durationSeconds": 0.3537708333333333,
+          "encoding": {
+            "encoder": "libopus",
+            "profile": null,
+            "rateControl": "vbr",
+            "targetBitrateKbps": 48,
+            "version": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+          },
+          "formatId": "opus-ogg",
+          "frames": 16981,
+          "id": "sfx.player.hit.file-2",
+          "itemId": "sfx.player.hit",
+          "kind": "sfx",
+          "master": {
+            "format": "wav-float32",
+            "frames": 16981,
+            "sha256": "1b6d9337caab8ffccb1143ed3b6994305af2684b20aeda0940314f6d9b86f6c2",
+            "sourceTrim": {
+              "method": "remove scheduled pre-roll; retain every sample above -100 dBFS and 50 ms of tail",
+              "removedTrailingFrames": 79019,
+              "retainedTailFrames": 2400,
+              "scheduledPreRollFrames": 960,
+              "thresholdAmplitude": 0.00001
+            }
+          },
+          "mimeType": "audio/ogg; codecs=\"opus\"",
+          "path": "media/sfx-player-hit-cef704740a9f/cef704740a9fc1aa-variant-2.ogg",
+          "quality": {
+            "decoded": {
+              "clippedSamples": 0,
+              "decodedFrames": 16981,
+              "loopBoundaryJump": 0.17549519243766554,
+              "nonfinite": 0,
+              "peak": 0.2506437301635742,
+              "peakDbFS": -12.018863095259054,
+              "rms": 0.027475868948732992
+            },
+            "listening": "not-evaluated",
+            "loop": "frame-boundaries-recorded; listening-not-evaluated",
+            "nativeMaster": {
+              "channels": 2,
+              "clippedSamples": 0,
+              "durationSeconds": 0.3537708333333333,
+              "loopBoundaryJump": 0.17216147482395172,
+              "nonfinite": 0,
+              "pcmBytes": 135848,
+              "peak": 0.26338478922843933,
+              "peakDbFS": -11.588186193020107,
+              "rms": 0.02799002587000924,
+              "rmsDbFS": -31.059934002668843,
+              "sampleRate": 48000
+            },
+            "technical": "passed"
+          },
+          "sampleRate": 48000,
+          "sha256": "fb8b5ebadd54bad56ddd0642a4a27f27fd0280cc0c41a3c2c3b9e7104bf2dcae",
+          "trim": {
+            "decodedFrames": 16981,
+            "endFrame": 16981,
+            "leadingPaddingFrames": 0,
+            "masterFrames": 16981,
+            "priming": "container-signalled; FFmpeg decoder already discards leading encoder priming",
+            "referenceSampleRate": 48000,
+            "startFrame": 0,
+            "trailingPaddingFrames": 0
+          }
+        },
+        {
+          "bytes": 783,
+          "channels": 1,
+          "codec": "opus",
+          "container": "ogg",
+          "decodedFrames": 6480,
+          "decodedPcmBytes": 25920,
+          "durationSeconds": 0.135,
+          "encoding": {
+            "encoder": "libopus",
+            "profile": null,
+            "rateControl": "vbr",
+            "targetBitrateKbps": 48,
+            "version": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+          },
+          "formatId": "opus-ogg",
+          "frames": 6480,
+          "id": "sfx.ui.confirm.file-1",
+          "itemId": "sfx.ui.confirm",
+          "kind": "sfx",
+          "master": {
+            "format": "wav-float32",
+            "frames": 6480,
+            "sha256": "5af484c3713fd7b77b19f2d6b955858a42bf356fc76efef7aae56669702582b0",
+            "sourceTrim": {
+              "method": "remove scheduled pre-roll; retain every sample above -100 dBFS and 50 ms of tail",
+              "removedTrailingFrames": 89520,
+              "retainedTailFrames": 2400,
+              "scheduledPreRollFrames": 960,
+              "thresholdAmplitude": 0.00001
+            }
+          },
+          "mimeType": "audio/ogg; codecs=\"opus\"",
+          "path": "media/sfx-ui-confirm-e514b3b96d48/e514b3b96d483e2e-variant-1.ogg",
+          "quality": {
+            "decoded": {
+              "clippedSamples": 0,
+              "decodedFrames": 6480,
+              "loopBoundaryJump": 0.0941698666283628,
+              "nonfinite": 0,
+              "peak": 0.1293567568063736,
+              "peakDbFS": -17.764217629310828,
+              "rms": 0.010833310577467899
+            },
+            "listening": "not-evaluated",
+            "loop": "frame-boundaries-recorded; listening-not-evaluated",
+            "nativeMaster": {
+              "channels": 2,
+              "clippedSamples": 0,
+              "durationSeconds": 0.135,
+              "loopBoundaryJump": 0.11733897775411606,
+              "nonfinite": 0,
+              "pcmBytes": 51840,
+              "peak": 0.15051524341106415,
+              "peakDbFS": -16.44839029454922,
+              "rms": 0.0111787885620178,
+              "rmsDbFS": -39.0321051621538,
+              "sampleRate": 48000
+            },
+            "technical": "passed"
+          },
+          "sampleRate": 48000,
+          "sha256": "9de99aacc974d315c29ef7c7237829afca14bd6e48eeea7d42034ac286dca171",
+          "trim": {
+            "decodedFrames": 6480,
+            "endFrame": 6480,
+            "leadingPaddingFrames": 0,
+            "masterFrames": 6480,
+            "priming": "container-signalled; FFmpeg decoder already discards leading encoder priming",
+            "referenceSampleRate": 48000,
+            "startFrame": 0,
+            "trailingPaddingFrames": 0
+          }
+        },
+        {
+          "bytes": 786,
+          "channels": 1,
+          "codec": "opus",
+          "container": "ogg",
+          "decodedFrames": 6480,
+          "decodedPcmBytes": 25920,
+          "durationSeconds": 0.135,
+          "encoding": {
+            "encoder": "libopus",
+            "profile": null,
+            "rateControl": "vbr",
+            "targetBitrateKbps": 48,
+            "version": "ffmpeg version 9.0.1-essentials_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers"
+          },
+          "formatId": "opus-ogg",
+          "frames": 6480,
+          "id": "sfx.ui.confirm.file-2",
+          "itemId": "sfx.ui.confirm",
+          "kind": "sfx",
+          "master": {
+            "format": "wav-float32",
+            "frames": 6480,
+            "sha256": "2008aea9113679887081895359a7d2744ffb62686622d1aadb792b705f8b22b4",
+            "sourceTrim": {
+              "method": "remove scheduled pre-roll; retain every sample above -100 dBFS and 50 ms of tail",
+              "removedTrailingFrames": 89520,
+              "retainedTailFrames": 2400,
+              "scheduledPreRollFrames": 960,
+              "thresholdAmplitude": 0.00001
+            }
+          },
+          "mimeType": "audio/ogg; codecs=\"opus\"",
+          "path": "media/sfx-ui-confirm-e514b3b96d48/e514b3b96d483e2e-variant-2.ogg",
+          "quality": {
+            "decoded": {
+              "clippedSamples": 0,
+              "decodedFrames": 6480,
+              "loopBoundaryJump": 0.10815643292153254,
+              "nonfinite": 0,
+              "peak": 0.14418523013591766,
+              "peakDbFS": -16.821584500930534,
+              "rms": 0.01039005410645972
+            },
+            "listening": "not-evaluated",
+            "loop": "frame-boundaries-recorded; listening-not-evaluated",
+            "nativeMaster": {
+              "channels": 2,
+              "clippedSamples": 0,
+              "durationSeconds": 0.135,
+              "loopBoundaryJump": 0.11733897775411606,
+              "nonfinite": 0,
+              "pcmBytes": 51840,
+              "peak": 0.14873695373535156,
+              "peakDbFS": -16.5516223498677,
+              "rms": 0.0109575995905659,
+              "rmsDbFS": -39.205691469493445,
+              "sampleRate": 48000
+            },
+            "technical": "passed"
+          },
+          "sampleRate": 48000,
+          "sha256": "45481f7d55ffbfca36c2d5ff6d84c967b5615c1b28a6d841fc4a83f0ad4eee64",
+          "trim": {
+            "decodedFrames": 6480,
+            "endFrame": 6480,
+            "leadingPaddingFrames": 0,
+            "masterFrames": 6480,
+            "priming": "container-signalled; FFmpeg decoder already discards leading encoder priming",
+            "referenceSampleRate": 48000,
+            "startFrame": 0,
+            "trailingPaddingFrames": 0
+          }
+        },
+        {
+          "bytes": 10787,
+          "decodedPcmBytes": 0,
+          "id": "provenance.licenses",
+          "kind": "provenance",
+          "mimeType": "text/plain; charset=utf-8",
+          "path": "provenance/LICENSES.txt",
+          "sha256": "dfca86a948fcf95531f595c44bf0f66379ad58af1fc67d2b0fcb30b6ec36150e"
+        },
+        {
+          "bytes": 8175,
+          "decodedPcmBytes": 0,
+          "id": "provenance.assets",
+          "kind": "provenance",
+          "mimeType": "application/json",
+          "path": "provenance/assets.json",
+          "sha256": "d11f48b2964c2dbcae6a0799c048db6976fb0ad3af0731b50dbb9db9f00baffe"
+        }
+      ],
+      "identity": {
+        "briefHash": "f20599f625087a1eba7609426bacfb63c6009e208d7b206d52511730c859e996",
+        "contractHash": "04ad72699077e456ead846a3482a8be694f084d19eec5bfffb0ad0d2a5055a68",
+        "contractVersion": 1,
+        "projectId": "media-delivery-demo",
+        "revision": 1
+      },
+      "kind": "audio-media-package",
+      "music": {
+        "bgm.exploration": {
+          "gainDb": 0,
+          "loop": {
+            "enabled": true,
+            "endFrame": 2003478,
+            "referenceSampleRate": 48000,
+            "startFrame": 0
+          },
+          "scene": "exploration",
+          "stemFileIds": [
+            "bgm.exploration.file-1",
+            "bgm.exploration.file-2",
+            "bgm.exploration.file-3"
+          ],
+          "stemGainDb": {
+            "bgm.exploration.file-1": 0,
+            "bgm.exploration.file-2": 0,
+            "bgm.exploration.file-3": 0
+          },
+          "stemRoles": {
+            "bgm.exploration.file-1": "core",
+            "bgm.exploration.file-2": "texture",
+            "bgm.exploration.file-3": "rhythm"
+          }
+        }
+      },
+      "packageId": "c19ac9de63f06cd13bc6c1fd75eebf85364f926501c8d19139ac98f2d2770d95",
+      "planDigest": "5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+      "planId": "plan-5770769a7d9461733f0fd5de5a76818caa13c44ecced834bfc0bdaa00e483721",
+      "provenance": {
+        "assetsPath": "provenance/assets.json",
+        "licensesPath": "provenance/LICENSES.txt"
+      },
+      "quality": {
+        "binding": "contract-validated-gameplay-not-evaluated",
+        "components": {
+          "bgm.exploration": {
+            "binding": "contract-validated",
+            "checks": [
+              "Native Chromium OfflineAudioContext rendered the selected score or cue",
+              "Master WAV SHA-256 and dimensions verified",
+              "FFprobe container/codec/48kHz/channel count verified",
+              "FFmpeg decoded every delivered file to finite non-silent Float32 PCM",
+              "Effective master frames and decoder padding recorded; no listening-quality claim"
+            ],
+            "listening": "not-evaluated",
+            "technical": "passed"
+          },
+          "sfx.item.collect": {
+            "binding": "contract-validated",
+            "checks": [
+              "Native Chromium OfflineAudioContext rendered the selected score or cue",
+              "Master WAV SHA-256 and dimensions verified",
+              "FFprobe container/codec/48kHz/channel count verified",
+              "FFmpeg decoded every delivered file to finite non-silent Float32 PCM",
+              "Effective master frames and decoder padding recorded; no listening-quality claim"
+            ],
+            "listening": "not-evaluated",
+            "technical": "passed"
+          },
+          "sfx.player.hit": {
+            "binding": "contract-validated",
+            "checks": [
+              "Native Chromium OfflineAudioContext rendered the selected score or cue",
+              "Master WAV SHA-256 and dimensions verified",
+              "FFprobe container/codec/48kHz/channel count verified",
+              "FFmpeg decoded every delivered file to finite non-silent Float32 PCM",
+              "Effective master frames and decoder padding recorded; no listening-quality claim"
+            ],
+            "listening": "not-evaluated",
+            "technical": "passed"
+          },
+          "sfx.ui.confirm": {
+            "binding": "contract-validated",
+            "checks": [
+              "Native Chromium OfflineAudioContext rendered the selected score or cue",
+              "Master WAV SHA-256 and dimensions verified",
+              "FFprobe container/codec/48kHz/channel count verified",
+              "FFmpeg decoded every delivered file to finite non-silent Float32 PCM",
+              "Effective master frames and decoder padding recorded; no listening-quality claim"
+            ],
+            "listening": "not-evaluated",
+            "technical": "passed"
+          }
+        },
+        "listening": "not-evaluated",
+        "technical": "passed"
+      },
+      "requiredReady": true,
+      "schemaVersion": 1,
+      "selectionDigest": "be645041b2d49fa85299f09d74b0cbf8cd278ea39931cc4abc0f3d83e293e409",
+      "sfx": {
+        "sfx.item.collect": {
+          "eventId": "item.collect",
+          "maxRatePerSecond": 6,
+          "spatial": {
+            "enabled": false
+          },
+          "variants": [
+            "sfx.item.collect.file-1",
+            "sfx.item.collect.file-2"
+          ]
+        },
+        "sfx.player.hit": {
+          "eventId": "player.hit",
+          "maxRatePerSecond": 3,
+          "spatial": {
+            "enabled": false
+          },
+          "variants": [
+            "sfx.player.hit.file-1",
+            "sfx.player.hit.file-2"
+          ]
+        },
+        "sfx.ui.confirm": {
+          "eventId": "ui.confirm",
+          "maxRatePerSecond": 4,
+          "spatial": {
+            "enabled": false
+          },
+          "variants": [
+            "sfx.ui.confirm.file-1",
+            "sfx.ui.confirm.file-2"
+          ]
+        }
+      }
+    }
+  },
+  "playbackSignal": {
+    "contextState": "running",
+    "rms": 0.009308224626272829,
+    "peak": 0.0615653470158577,
+    "player": {
+      "disposed": false,
+      "unlocked": true,
+      "contextState": "running",
+      "muted": false,
+      "paused": false,
+      "intensity": 0.35,
+      "scene": null,
+      "musicPlaying": true,
+      "musicItemId": "bgm.exploration",
+      "musicOffset": 0.009333333333330529,
+      "activeVoices": 1,
+      "musicSources": 3,
+      "eventCount": 1,
+      "packageId": "c19ac9de63f06cd13bc6c1fd75eebf85364f926501c8d19139ac98f2d2770d95",
+      "loadedFiles": 9,
+      "eventIds": [
+        "item.collect",
+        "player.hit",
+        "ui.confirm"
+      ],
+      "musicIds": [
+        "bgm.exploration"
+      ],
+      "spatialCapability": "HRTF-distance-panning-without-occlusion",
+      "listenerPose": {
+        "position": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "forward": {
+          "x": 0,
+          "y": 0,
+          "z": -1
+        },
+        "up": {
+          "x": 0,
+          "y": 1,
+          "z": 0
+        }
+      }
+    }
+  },
+  "export": {
+    "path": "artifacts/service-browser-audio-package.zip",
+    "sha256": "9d2a0c9db028dc958368eb1769525a20567c46dcdf2dcf9f739d3ffc5957eb08",
+    "files": [
+      {
+        "path": "manifest.json",
+        "bytes": 28781
+      },
+      {
+        "path": "index.html",
+        "bytes": 3533
+      },
+      {
+        "path": "runtime/audio-service-client.mjs",
+        "bytes": 24932
+      },
+      {
+        "path": "runtime/audio-package-player.mjs",
+        "bytes": 12878
+      },
+      {
+        "path": "README.txt",
+        "bytes": 696
+      },
+      {
+        "path": "files/media/bgm-exploration-3a0db19bd0c5/3a0db19bd0c52ed7-core.ogg",
+        "bytes": 406082
+      },
+      {
+        "path": "files/media/bgm-exploration-3a0db19bd0c5/3a0db19bd0c52ed7-texture.ogg",
+        "bytes": 521357
+      },
+      {
+        "path": "files/media/bgm-exploration-3a0db19bd0c5/3a0db19bd0c52ed7-rhythm.ogg",
+        "bytes": 208324
+      },
+      {
+        "path": "files/media/sfx-item-collect-cb2abe1e0ed3/cb2abe1e0ed36087-variant-1.ogg",
+        "bytes": 2561
+      },
+      {
+        "path": "files/media/sfx-item-collect-cb2abe1e0ed3/cb2abe1e0ed36087-variant-2.ogg",
+        "bytes": 2467
+      },
+      {
+        "path": "files/media/sfx-player-hit-cef704740a9f/cef704740a9fc1aa-variant-1.ogg",
+        "bytes": 1722
+      },
+      {
+        "path": "files/media/sfx-player-hit-cef704740a9f/cef704740a9fc1aa-variant-2.ogg",
+        "bytes": 1718
+      },
+      {
+        "path": "files/media/sfx-ui-confirm-e514b3b96d48/e514b3b96d483e2e-variant-1.ogg",
+        "bytes": 783
+      },
+      {
+        "path": "files/media/sfx-ui-confirm-e514b3b96d48/e514b3b96d483e2e-variant-2.ogg",
+        "bytes": 786
+      },
+      {
+        "path": "files/provenance/LICENSES.txt",
+        "bytes": 10787
+      },
+      {
+        "path": "files/provenance/assets.json",
+        "bytes": 8175
+      }
+    ]
+  },
+  "spatial": {
+    "planId": "plan-bb497f0ab43d3926077ab4c65899043cd49bad45b49f8e09d0de0702006637d9",
+    "packageId": "d3419cc595ff63e01a894291024cf46f1dc44e7e998d2389fe39a43da4f340cd",
+    "near": {
+      "distance": 1,
+      "rms": 0.019879321381226424,
+      "peak": 0.19414494931697845
+    },
+    "far": {
+      "distance": 10,
+      "rms": 0.001987932172247611,
+      "peak": 0.019414495676755905
+    },
+    "ratio": 0.10000000171660632,
+    "scope": "Native OfflineAudioContext plus the actual package player and HRTF PannerNode. Distance attenuation only; no Three.js scene or occlusion claim."
+  },
+  "sourcesUnchanged": true,
+  "status": "passed",
+  "finishedAt": "2026-11-17T03:31:42.841Z"
+}

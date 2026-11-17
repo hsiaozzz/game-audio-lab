@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-11-17T03:30:50.273Z",
+  "purpose": "Real service generation, encoding, delivery, persistent cache and restart checks; no subjective audio-quality claim.",
+  "checks": [
+    "real Chromium and FFmpeg health preflight",
+    "plan persistence and idempotent confirmation",
+    "selected SFX and real BGM generated into Opus package without unselected audio",
+    "immutable manifest hash and binary bytes/hash/HEAD/Range verification",
+    "second task reuses persistent media cache",
+    "completed task and package survive process restart",
+    "AAC-LC fallback produces a distinct verified package using real masters"
+  ],
+  "pass": true,
+  "sourceHashes": {
+    "server/audio-plan.mjs": "4e9dffca2449b5d3f77982080557f905c05d2ea304f86727972eea1954f0aee2",
+    "server/audio-jobs.mjs": "645e6492514cf919839fafd340b5add7748ab92326c6e939a6d573720f71ba91",
+    "server/audio-api.mjs": "fa61aadb265060ca0cfe666f1cdde9e972a001e67d9e5e9b58ebaf970e015c3d",
+    "server/audio-director.mjs": "0534a2dd6c1a0264b9433f55b2b28af27437bef8883f53cfb447c2f88c0a1667",
+    "server/audio-renderer.mjs": "be23a95e5c6abe48ed1988d63e46513da8a6e9f791667b586f951454c9d85c48",
+    "server/audio-media.mjs": "13d496edaf2bcd3f5deb8e4fedd23772bb1d11b105b217501d2b76c9bb6005a3",
+    "src/audio-engine.mjs": "36daf727b0e4c8a5abeef21e19cef367453ec5d146284ade8734c7f2372059d3",
+    "src/game-audio-pipeline.mjs": "43f75a81cdf7c1bc16a9296791a5a49349de0e1ecbdf347ddf8002772c41ec3b",
+    "src/service-render-worker.mjs": "23e9f30d862c6705d03335d23e875d6bc8752afc8e6006726ffe2b4a1d19c199",
+    "scripts/server.mjs": "3bc44c2c9f3417aaec97dc92e837e008009708ed8ed5b963c69dc35d89bb4631"
+  },
+  "planId": "plan-8a02231433dae2edd4db98a296260a43da81208d6599c341655b34efb26828e4",
+  "opus": {
+    "packageId": "5547faac6152ee6248cc1aa7ad7419284349d70e74a772572fa27c8031459480",
+    "files": [
+      {
+        "id": "bgm.exploration.file-1",
+        "bytes": 331322,
+        "frames": 1588966,
+        "sampleRate": 48000,
+        "channels": 2,
+        "formatId": "opus-ogg"
+      },
+      {
+        "id": "sfx.item.collect.file-1",
+        "bytes": 2503,
+        "frames": 20878,
+        "sampleRate": 48000,
+        "channels": 1,
+        "formatId": "opus-ogg"
+      }
+    ]
+  },
+  "cacheComponents": [
+    {
+      "id": "bgm.exploration",
+      "status": "ready",
+      "cacheHit": true
+    },
+    {
+      "id": "sfx.item.collect",
+      "status": "ready",
+      "cacheHit": true
+    }
+  ],
+  "aac": {
+    "packageId": "bd791a6b1186466b98339d3e52067d1958167caf8e243dd488a8581df92cb97a",
+    "files": [
+      {
+        "id": "bgm.exploration.file-1",
+        "bytes": 413115,
+        "frames": 1588966,
+        "sampleRate": 48000,
+        "channels": 2,
+        "formatId": "aac-lc-m4a"
+      },
+      {
+        "id": "sfx.item.collect.file-1",
+        "bytes": 4057,
+        "frames": 20878,
+        "sampleRate": 48000,
+        "channels": 1,
+        "formatId": "aac-lc-m4a"
+      }
+    ]
+  }
+}

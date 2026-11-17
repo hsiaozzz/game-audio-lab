@@ -1,7 +1,20 @@
 {
-  "status": "proposed-not-implemented",
+  "status": "implemented",
+  "serviceVersion": "audio-service-v1",
+  "scope": "Documentation config; submit only supported delivery fields to the HTTP API",
   "profile": "compact-opus-v1",
   "selection": "one-format-per-item",
+  "defaultDelivery": {
+    "profile": "compact-opus-v1",
+    "acceptedFormats": ["opus-ogg", "aac-lc-m4a"],
+    "selection": "one-format-per-item",
+    "formatOverrides": {},
+    "quality": "compact",
+    "sfxQuality": "standard",
+    "renderMode": "hybrid",
+    "maxTransferBytes": 12582912,
+    "maxDecodedPcmBytes": 67108864
+  },
   "formats": [
     {
       "id": "opus-ogg",
@@ -31,10 +44,33 @@
       "extension": ".m4a",
       "mimeType": "audio/mp4; codecs=\"mp4a.40.2\"",
       "sampleRate": 48000,
-      "music": { "channels": 2, "targetBitrateKbps": 96 },
-      "sfx": { "channels": 1, "targetBitrateKbps": 64 }
+      "music": { "channels": 2, "rateControl": "target-bitrate", "targetBitrateKbps": 96 },
+      "sfx": { "channels": 1, "rateControl": "target-bitrate", "targetBitrateKbps": 64 }
     }
   ],
   "transport": "binary-files-with-json-metadata",
-  "master": "retain-wav-pcm-in-production-storage"
+  "master": {
+    "format": "wav-float32",
+    "sampleRate": 48000,
+    "storage": "server-cache-only",
+    "includedInRuntimePackage": false
+  },
+  "musicPolicy": "shared-theme-per-plan",
+  "playbackChoices": ["mix", "stems"],
+  "stemRoles": ["core", "texture", "rhythm"],
+  "limits": {
+    "requestBytes": 262144,
+    "items": 32,
+    "events": 64,
+    "variants": 3,
+    "musicSlots": 4,
+    "durationSeconds": 65,
+    "maxTransferBytes": 67108864,
+    "maxDecodedPcmBytes": 268435456
+  },
+  "qualityScope": {
+    "technical": "render-and-decode-validation",
+    "binding": "contract-validated-gameplay-not-evaluated",
+    "listening": "not-evaluated"
+  }
 }

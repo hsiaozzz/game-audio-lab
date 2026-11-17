@@ -1,162 +1,90 @@
 # GameAudioLab
 
-独立的「游戏提示词 → BGM / 音效 / 游戏事件」研究项目。2026-11-16。
+独立的游戏声音生成与交付项目，v0.2.0，2026-11-17。同一份游戏设计可以并行驱动游戏生成和 BGM/SFX 制作，游戏通过语义事件使用已交付的本地声音。
 
-目标是让同一份游戏需求驱动玩法和完整声音设计，游戏生成与音频生成并行进行，最后按
-事件合同组合。本目录与现有游戏项目分开；目前交付的是可试听、可复现的声音研究原型。
+本仓库已实现声音方案、后台离线渲染、Opus/AAC 编码、持久任务与缓存、按需媒体包、浏览器播放和声音 ZIP。默认创作只有 cozy/neon/ruins 三类有限风格与 seed 作曲；这是可集成原型，任意提示词的成品音乐质量仍需算法和听审迭代。现有游戏项目未改动，本仓库不含通用游戏生成模型。
 
-## 与新游戏生成配合
+## 启动
 
-启动后打开 **http://127.0.0.1:4178/pipeline.html**。
-这个演示先让沙箱小游戏可玩，同时由宿主调用 `POST /api/audio/plan` 规划声音，再实际渲染，完成后点击开启声音。
-小游戏只发送语义事件，父宿主统一播放音乐和音效；它运行在无同源权限的 iframe，
-不请求音频资源。这对应现有游戏生成器的离线预览限制。
-
-[真实浏览器检查](artifacts/pipeline-browser-validation.json) 的 15 项全部通过，包括三层
-实际播放、有效 PCM 输出、游戏事件触发、暂停恢复与音频失败后继续游玩。本机一次
-neon 实测中，固定小游戏 0.02 秒可玩，三层声音约 23.07 秒就绪；这不是通用性能保证。
-[管线合同检查](artifacts/pipeline-validation.json) 另通过 39 项，使用模拟 runtime，
-与上述真实浏览器音频验证分别记录。
-
-当前游戏为预先编写的接入样本，音频仍使用三类规则导演；尚未调用游戏生成模型。
-接入方案、共享 brief、任务版本汇合、部分就绪、失败恢复与导出限制见
-[游戏生成管线接入](docs/GAME-PIPELINE-INTEGRATION.md)。旧游戏项目没有改动，独立
-后台渲染队列与可脱离宿主的完整音频包导出仍待实现。
-
-具体请求、响应与宿主调用顺序见 [接口交互协议](docs/API-INTERACTION.md)。后续合作
-采用两阶段：先返回声音方案，宿主自动核对共享合同与版本、选定所需交付项，再提交
-渲染任务；游戏运行时播放已交付的本地音频，不在每次动作时调用生成服务。
-这套按需交付协议仍是未来设计，当前已实现的是本地 plan API、adapter 与 iframe 桥。
-
-后续媒体交付默认采用 **Opus/Ogg**：BGM 立体声 64 kbps VBR（需要时 96），短音效
-单声道 48 kbps VBR（32 为试听验收后的紧凑档）；按实际解码能力选择 AAC-LC/M4A
-回退，每项只下载一种格式。母版保留 WAV，JSON 只传元数据与资源地址。完整参数见
-[默认输出格式](docs/API-INTERACTION.md#默认媒体输出格式)与
-[默认配置](examples/audio-delivery-defaults.json)；当前 PCM/WAV 原型尚未实现该编码交付器。
-
-## 先听成品
-
-要隐藏来源评选，打开 **http://127.0.0.1:4178/blind.html**：八组同类事件、随机顺序、
-随机 A/B；两版完整听完再投票，全部完成才揭晓来源及分数。当前赛程为纯合成对 Kenney，
-混合版不参赛。使用逐事件匹配响度的 WAV，无 MP3 编码差异，详见 [盲测说明](docs/BLIND-TEST.md)。
-
-本机服务运行时打开 **http://127.0.0.1:4178/listen.html**，不需要重新渲染。
-
-- [海岛场景混音，22 秒](artifacts/cozy-game-context.mp3)：BGM 与抛投、入水、收集等事件。
-- [Kenney 参考](artifacts/sfx-reference-listen.mp3) / [纯程序合成](artifacts/sfx-synth-listen.mp3) / [混合设计](artifacts/sfx-hybrid-listen.mp3)：逐事件匹配响度。
-- [海岛纯合成 BGM](artifacts/cozy-synth-listen.mp3) / [海岛采样木琴 BGM](artifacts/cozy-hybrid-listen.mp3)：相同乐谱，seed 1701，均约 −22 LUFS。
-- [霓虹动作 BGM](artifacts/neon-listen.mp3) / [遗迹探索 BGM](artifacts/ruins-listen.mp3)。
-
-[实验结论](REPORT.md) · [接口交互](docs/API-INTERACTION.md) · [Kenney 对照分析](docs/KENNEY-BENCHMARK.md) · [未来管线合同](docs/PIPELINE-CONTRACT.md)
-
-技术检查通过不等于音乐已经达到成品听感。三路音效的混合版直接使用参考素材；它不能
-证明纯合成已经达到 Kenney 的水平。场景混音是脚本化试听，没有声称来自完整游戏录像。
-
-已完成一次匿名人工盲听：**1 位听者、8 类事件，纯合成 4.5 分，Kenney 3.5 分；
-纯合成 3 胜、2 负、3 平。** 这是当前八组样本的小样本偏好，不能推广到所有音效，
-也不能据此证明 BGM 品质。自动化 QA 会话没有计入这个结果。
-
-## 当前能力
-
-- 三类本地风格导演：海岛休闲、霓虹动作、幽暗遗迹。关键词决定配置，seed 决定乐句。
-- 16 小节 A / B / A′ 乐谱、六个声部，编译为 core / texture / rhythm 三个同步分轨。
-- Tone.js 15.1.22 合成器与海岛木琴采样；真实 Web Audio 离线渲染、WAV 导出。
-- 一个实时音频时钟、事件音效、分轨强度、音乐 ducking、静音、暂停恢复与声部上限。
-- 固定等距场景沙盘，支持触发音效；这是声音演示场景。
-- 独立声音 plan API、可校验的游戏事件 adapter 与 opaque iframe MessageChannel 桥。
-- 新游戏管线宿主演示：游戏先可玩、声音随后就绪，再用真实游戏事件驱动声音。
-- 11 个 Kenney SFX 与 6 个 VSCO2 木琴采样的精简音源包，约 970 KB。
-
-当前没有通用 AI 音频导演、完整游戏生成器、正式 AudioPackage 打包/后台渲染服务、
-持久化渲染缓存或真正的 3D 距离/HRTF 空间音频。neon / ruins 的 BGM 当前均为合成配器；选择
-hybrid 也不会自动变成管弦乐或采样配器。
-
-## 启动与复现
-
-安装 Node.js 20+，将仓库克隆或解压到任意目录，在项目根目录运行。默认使用已固定的
-Tone bundle、音源与试听成品，无需安装依赖或联网下载：
-
-```sh
-npm start
-```
-
-打开 http://127.0.0.1:4178/。点击示例、选择音源，编排渲染后点击播放以解锁浏览器音频。
-本机四次完整渲染约需 20–32 秒/首；不是即时生成。试听页可以直接播放已有文件。
-
-服务仅监听 127.0.0.1。通过 `GAME_AUDIO_PORT` 修改端口。它是本地研究服务器，提供
-网页资源、音源包和实验产物保存接口；尚未实现可部署的多用户服务。Windows PowerShell
-可先设置 `$env:GAME_AUDIO_PORT='4180'`；macOS/Linux 可用 `GAME_AUDIO_PORT=4180 npm start`。
-盲测会话落盘后可跨服务重启恢复；会话原始记录只保存在本地，不随仓库分发。
-
-`npm test` 检查四个页面及本地模块资源、音源/依赖哈希、九份试听文件、可重现作曲、
-共享设计/事件合同、iframe 消息桥、盲测 API 与本地服务合同，
-不需要 Playwright、FFmpeg、旧游戏项目或网络；测试使用独立 QA 会话，不代表人工听审。
-
-需要重新执行浏览器离线渲染时，另行安装可选的开发依赖与专用 Chromium：
+需要 Node.js 20.6+（推荐 22 或更新的 LTS）、FFmpeg/ffprobe（含 libopus 与 AAC 编码器）、匹配的 Playwright Chromium。首次安装：
 
 ```sh
 npm ci
 npx playwright install chromium
+npm run doctor
+npm start
 ```
 
-保持 `npm start` 在一个终端运行，在另一个终端执行 `npm run render:probe` 或
-`npm run render:suite`。`npm run engine:check` 可单独检查音频引擎边界与生命周期。
-执行器从本项目安装的 Playwright 启动独立浏览器。渲染脚本支持 `GAME_AUDIO_PORT` 或
-完整 `GAME_AUDIO_ORIGIN`；引擎检查使用 `GAME_AUDIO_ORIGIN`。也可用
-`GAME_AUDIO_PLAYWRIGHT` 指定已安装模块的入口文件。
-这些执行器不连接用户的浏览器会话，也不属于默认 `npm test`。
-仓库不含三路 raw SFX 基准 WAV，`engine:check` 在缺少它们时会明确跳过基准比较，
-继续执行生命周期与输入检查，并标记 `passed-with-skips`；不会把跳过算成比较通过。
+Linux 可用 `npx playwright install --with-deps chromium` 安装系统依赖。FFmpeg/ffprobe 放 PATH，或设置 GAME_AUDIO_FFMPEG/GAME_AUDIO_FFPROBE。默认监听 `http://127.0.0.1:4178`，环境项见 [.env.example](.env.example)；`.env` 不会被 npm start 自动读取，Node 20.6+ 可用 `node --env-file=.env scripts/server.mjs`。
+
+打开 **http://127.0.0.1:4178/delivery.html**，建立方案、选择所需声音并确认制作，媒体下载/校验/解码后点击开启声音。小游戏可先玩，短 SFX 可先于 BGM 就绪；全部播放在本地缓冲执行。可选择 mix 或三层动态分轨，导出声音 ZIP 后在静态 HTTP 下脱离生成服务运行。
+
+`npm run doctor` 检查存储、浏览器安装与媒体工具；health 的 renderer.ready 和实际 service:e2e 才分别覆盖运行前依赖与真实渲染链路。首次 BGM 仍需离线制作，不是即时推理。改变端口用 GAME_AUDIO_PORT；非 loopback 部署必须配置服务 token，部署步骤见 [HANDOFF](docs/HANDOFF.md)。
+
+## 新游戏接入
+
+先冻结 GameBrief 和事件合同，向 `POST /v1/audio/plans` 请求方案；可信宿主核对五字段身份与预算，提交 `planId/planDigest/identity/acceptedItems/delivery` 到 jobs，并使用 Idempotency-Key。轮询取得不可变 manifest，校验、解码后接入本地播放器。运行时拾取、命中、循环都不请求生成 API。
+
+| 入口 | 用途 |
+|---|---|
+| [交接与部署](docs/HANDOFF.md) | 算法、后端、前端接手与运维 |
+| [接口交互](docs/API-INTERACTION.md) | 真实 v1 请求、确认、任务、包与预算 |
+| [OpenAPI](docs/openapi.json) / [类型](docs/audio-service-types.d.ts) | 机器合同 |
+| [管线合同](docs/PIPELINE-CONTRACT.md) | 身份、创作、媒体与运行边界 |
+| [游戏接入](docs/GAME-PIPELINE-INTEGRATION.md) | 并行任务、opaque iframe、3D 与导出 |
+| [请求样例](examples/audio-service-request.json) / [后端样例](examples/backend-orchestrator.mjs) | 可运行的计划与可信下载交付 |
+| [算法模块](examples/algorithm-plugin.mjs) | 替换导演/作曲器的可信插件入口 |
+
+默认输出 48 kHz Opus/Ogg，BGM stereo 64 kbps VBR、SFX mono 48；AAC-LC/M4A 回退分别 96/64。每 item 只交付一种编码，mix/stems 按需选择。默认 12 MiB 传输和 64 MiB 解码 Float32 PCM；WAV 母版保留服务缓存。[默认参数](examples/audio-delivery-defaults.json) 是说明配置，HTTP 以真实 schema 为准。
+
+默认 local 不调用模型。可设置可信 GAME_AUDIO_DIRECTOR_MODULE，替换受校验的导演/谱面；也可配置 OpenAI-compatible 风格导演，但它只返回风格/速度/调式/主音，本地作曲和音源仍保留。本轮没有调用收费音乐模型或验证其质量。
+
+队列采用单服务进程、本地文件锁与持久恢复，默认并发 1；不支持多实例共享目录。播放器提供可选 HRTF/距离衰减，旧 iframe adapter 只支持 pan；未实现遮挡、连续声源移动或完整 Three.js 自动集成。实际玩法、跨浏览器/移动端与主观听感需分别验收。
+
+## 测试与证据
 
 ```sh
-npm run compose:check
-npm run analyze
-node scripts/analyze-listens.mjs
-node scripts/compare-sfx.mjs
-node scripts/check-blind-api.mjs
+npm test
+npm run service:e2e
+npm run service:browser
 ```
 
-音频分析和比较需要 FFmpeg 在 PATH；`analyze-listens.mjs` / `compare-sfx.mjs` 还支持
-`GAME_AUDIO_FFMPEG`。比较脚本读取
-已导出的三路 raw WAV，逐事件测量响度并施加常量增益，保存 WAV 与 MP3 和增益记录。
-全量原始 WAV、早期实验与自动测试会话保留在研究机器，默认仓库没有包含这些大文件；
-需要重新生成相应输入后才能重跑依赖它们的分析。`npm test` 不使用这些原始文件。
+npm test 检查分发、确定性作曲、合同、桥、旧研究 API、真实 v1 协议、队列与机器规范，其中队列失败/恢复采用受控渲染器；它不替代真实媒体渲染。service:e2e 启动独立服务与真实 Chromium/FFmpeg，生成 BGM/SFX、编码 Opus/AAC、逐文件验 hash、测缓存和进程重启。后者需要完整依赖，报告见 [service-e2e-validation](artifacts/service-e2e-validation.json)，源码哈希标明其适用版本。
 
-`npm run setup:tone` 可重取固定版本并核对固定 integrity 与 bundle SHA-256，需要系统
-提供 `tar`。`npm run assets:prepare -- --source <Kenney目录>` 可从自备的本地 Kenney
-目录和固定 VSCO commit 重建音源；也支持 `GAME_AUDIO_SOURCE`、`GAME_AUDIO_FFMPEG`
-与 `GAME_AUDIO_FFPROBE`，具体见 [素材说明](docs/ASSETS.md)。
-现有文件已齐全，正常使用无需下载。
+service:browser 再启动专用 Chromium，验证原生解码、三分轨有效输出、断网本地触发/暂停恢复、独立 ZIP 运行、390 px 布局、失败时游戏继续和 HRTF 距离衰减。已有 [13 项实测记录](artifacts/service-browser-validation.json)，记录保留源码哈希与 sourcesUnchanged，最终以所测版本为准。HRTF 测量是原生离线上下文中 1 m / 10 m 的同声音效，不代表完整 Three.js 场景或空间听感通过。
 
-## 目录
+旧完整音乐/引擎实验可用 render:probe、render:suite、engine:check，启动服务器后在另一终端运行。执行器启动自己的浏览器，不接管用户会话。引擎检查缺少未分发 raw SFX 基准时会明确标 passed-with-skips，不把跳过算通过。重做响度/素材分析需 FFmpeg 和对应 raw 输入，详见 [实验报告](REPORT.md)。
+
+Dockerfile 包含 Node、FFmpeg 与匹配 Chromium 的安装和构建时启动检查，运行时需注入凭据并挂持久目录。本次 Windows 环境没有 Docker，未声称镜像已实际构建或发布。
+
+## 先听历史作品
+
+启动后打开 **http://127.0.0.1:4178/listen.html**，直接播放已有作品，无需重新渲染。
+
+- [海岛场景混音](artifacts/cozy-game-context.mp3)、[海岛合成](artifacts/cozy-synth-listen.mp3) / [采样木琴](artifacts/cozy-hybrid-listen.mp3)。
+- [霓虹动作](artifacts/neon-listen.mp3)、[幽暗遗迹](artifacts/ruins-listen.mp3)。
+- [参考 SFX](artifacts/sfx-reference-listen.mp3) / [纯合成](artifacts/sfx-synth-listen.mp3) / [混合](artifacts/sfx-hybrid-listen.mp3)。
+
+这些是 2026-11-16 的研究成品，历史 render-suite 和 runtime 报告不自动代表新服务源码的验收。盲听页 blind.html 使用匹配响度的 WAV，人工小样本为 1 位听者/8 事件，纯合成 4.5:3.5；不能推广为所有音效或 BGM 品质。混合版直接使用参考素材，不能作为纯合成追平的证据。
+
+index.html 是原始作曲沙盘；pipeline.html 是旧浏览器离线渲染/opaque iframe 实验。它们保留历史研究用途，新服务接入使用 delivery.html。旧 `/api/audio/*` 和实验保存/盲测接口只允许 loopback，不是 v1 媒体包端点。
+
+## 实现位置
 
 | 位置 | 用途 |
 |---|---|
-| `src/director.mjs` | 有限关键词风格导演与事件映射 |
-| `src/composer.mjs` | 可重现的乐句、和声与编排 |
-| `src/audio-engine.mjs` | Tone 离线渲染、Web Audio runtime、音效设计 |
-| `listen.html` | 直接试听已生成的文件 |
-| `blind.html` | 随机隐藏来源的八组偏好盲测 |
-| `pipeline.html` | 新游戏生成与声音并行的独立宿主演示 |
-| `src/game-audio-pipeline.mjs` | 共享设计、事件合同、声音计划与游戏 adapter |
-| `src/game-audio-bridge.mjs` | opaque iframe 与宿主之间的受限事件通道 |
-| `scripts/blind-api.mjs` | 服务端保存随机映射与投票，结束后揭晓 |
-| `assets/manifest.json` | 素材来源、许可、音高映射与哈希 |
-| `artifacts/render-suite.json` | 四份 BGM 实际渲染记录 |
-| `artifacts/runtime-validation.json` | 最终 runtime 的真实输出测试 |
-| `artifacts/audio-engine-validation.json` | 发布前音频引擎边界与生命周期检查 |
-| `artifacts/sfx-comparison.json` | Kenney 对照、逐事件响度与处理记录 |
-| `artifacts/audio-analysis.json` | WAV 波形与 FFmpeg 响度检测 |
-| `artifacts/listen-analysis.json` | MP3 解码与响度检测 |
+| server/audio-api.mjs / audio-plan.mjs | 授权、v1 路由、不可变计划与媒体选择 |
+| server/audio-jobs.mjs | owner 隔离、幂等、单进程队列、恢复与媒体包 |
+| server/audio-director.mjs | local / 可信模块 / 兼容接口导演 |
+| server/audio-renderer.mjs / audio-media.mjs | 原生 Web Audio 母版、缓存、FFmpeg 编解码验收 |
+| src/director.mjs / composer.mjs / audio-engine.mjs | 有限风格、谱面、Tone 与 SFX 配方 |
+| src/audio-service-client.mjs / audio-package-player.mjs | 验证/下载/解码与本地播放 |
+| src/audio-package-export.mjs | 独立声音 ZIP |
+| src/game-audio-pipeline.mjs / game-audio-bridge.mjs | 共享身份和受限沙箱事件通道 |
+| assets/manifest.json / vendor/provenance.json | 固定音源、Tone 版本、许可与真实摘要 |
 
-仓库包含默认网页需要的九份 MP3、盲测两份匹配 WAV 与精选测量报告。早期 `*-ego`、
-`*-headless`、`*-promptseed` 和全量 BGM WAV 仅在本地保留，不随仓库分发。
-正式海岛 A/B 使用相同 seed 的 `cozy-synth` / `cozy-hybrid`；报告中的历史测量不代表
-每次克隆都会重新渲染。用户盲测原始会话、浏览器操作脚本、下载缓存同样不分发。
+仓库含九份 MP3、两份盲测 WAV 与精选技术记录。全量 raw WAV、浏览器操作、盲测原始会话、.data 任务/母版/缓存、.env 和依赖安装不分发。
 
 ## 许可
 
-Tone.js：MIT；Kenney 与本次使用的 VSCO2 CE 源采样：CC0。代码库许可与声音内容许可
-分别记录。项目自有代码尚未选择开源许可证。第三方来源和许可见
-[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)；固定版本、处理方法和本地来源核验边界
-见 [ASSETS](docs/ASSETS.md)、`vendor/provenance.json` 和 `assets/licenses/`。
+Tone.js MIT，所用 Kenney / VSCO2 CE 源采样 CC0。自有代码尚未选择开源许可证；源码可读取不表示授予任意外部使用权。声音内容与代码许可分别记录，包附第三方许可与来源。见 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)、[ASSETS](docs/ASSETS.md) 及 assets/licenses。

@@ -8,6 +8,8 @@ node_modules/
 Thumbs.db
 .vscode/
 .idea/
+.data/
+coverage/
 
 # Rebuild caches and user-specific browser automation/history
 vendor/tone/
@@ -44,4 +46,7 @@ artifacts/*
 !artifacts/pipeline-browser-validation.json
 !artifacts/release-ui-validation.json
 !artifacts/final-evidence.json
+!artifacts/service-e2e-validation.json
+!artifacts/service-browser-validation.json
+!artifacts/contract-validation.json
 !artifacts/cozy-game-context.json

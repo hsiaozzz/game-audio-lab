@@ -4,11 +4,13 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
+import os from 'node:os';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const report={createdAt:new Date().toISOString(),purpose:'HTTP serving and blind-session restart QA; all votes are automated qa inputs.',checks:[],pass:false};
 let child,origin;
+const serviceData=await fs.mkdtemp(path.join(os.tmpdir(),'audio-legacy-http-'));
 async function start(){
- child=spawn(process.execPath,['scripts/server.mjs'],{cwd:root,env:{...process.env,GAME_AUDIO_PORT:'0'},windowsHide:true,stdio:['ignore','pipe','pipe']});
+ child=spawn(process.execPath,['scripts/server.mjs'],{cwd:root,env:{...process.env,GAME_AUDIO_PORT:'0',GAME_AUDIO_DATA_DIR:serviceData,GAME_AUDIO_HOST:'127.0.0.1',GAME_AUDIO_API_TOKEN:'',GAME_AUDIO_API_TOKENS_JSON:'',GAME_AUDIO_DIRECTOR_MODULE:'',GAME_AUDIO_DIRECTOR_PROVIDER:'local'},windowsHide:true,stdio:['ignore','pipe','pipe']});
  origin=await new Promise((resolve,reject)=>{
   const timer=setTimeout(()=>reject(new Error('Server startup timeout')),8000);
   child.once('error',error=>{clearTimeout(timer);reject(error);});
@@ -51,4 +53,4 @@ try{
  report.checks.push('completed results and score preserved after process restart');
  report.pass=true;
 }catch(error){report.error=String(error.stack||error);process.exitCode=1;}
-finally{await stop();await fs.writeFile(path.join(root,'artifacts/server-validation.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));}
+finally{await stop();await fs.rm(serviceData,{recursive:true,force:true});await fs.writeFile(path.join(root,'artifacts/server-validation.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));}

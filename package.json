@@ -1,10 +1,10 @@
 {
   "name": "game-audio-lab",
-  "version": "0.1.0-research",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Independent prompt-to-game-audio research prototype",
-  "engines": { "node": ">=20" },
+  "description": "Independent game audio planning, generation, packaging and playback service",
+  "engines": { "node": ">=20.6" },
   "scripts": {
     "start": "node scripts/server.mjs",
     "test": "node scripts/test.mjs",
@@ -16,9 +16,13 @@
     "render:probe": "node scripts/headless-probe.mjs",
     "render:suite": "node scripts/render-suite.mjs",
     "engine:check": "node scripts/check-audio-engine.mjs",
-    "analyze": "node scripts/analyze.mjs"
+    "analyze": "node scripts/analyze.mjs",
+    "service:check": "node scripts/check-audio-service.mjs",
+    "service:e2e": "node scripts/check-audio-service-e2e.mjs",
+    "service:browser": "node scripts/check-audio-browser.mjs",
+    "doctor": "node scripts/audio-doctor.mjs"
   },
-  "devDependencies": {
+  "dependencies": {
     "playwright": "1.63.0"
   }
 }

@@ -1,254 +1,73 @@
-# 独立游戏声音生成项目：管线合同草案
+# 游戏生成与声音交付合同
 
-版本：研究草案 0.1，2026-11-16。
-
-这个项目的目标是接收用户的游戏需求，与游戏生成并行地创作配乐和音效，最后将声音
-绑定到实际游戏行为。它可以作为独立服务和运行时被不同游戏生成器调用。
-
-当前原型验证了有限的作曲/音色/渲染流程和固定场景中的声音触发。它使用本地关键词
-路由与确定性乐谱生成，没有调用通用 LLM，也没有从任意提示词生成完整游戏。
-下文是完整产品的输入、输出及协作合同草案，不是已实现的线上 API。
-本轮新增了本地 plan API、合同 adapter 和 opaque iframe 宿主演示；它们的当前字段、
-实际接入点与实现边界见 [GAME-PIPELINE-INTEGRATION](GAME-PIPELINE-INTEGRATION.md)
-及 `src/game-audio-pipeline.mjs`，不应将下方完整音频包草案当作现有 API。
-当前调用示例与未来确认后按需交付协议见 [API-INTERACTION](API-INTERACTION.md)；
-它明确区分已实现的 `/api/audio/*` 与尚未实现的 `/v1/audio/*`。
-
-## 共享设计先于两个生成任务
+版本：v1，2026-11-17。HTTP 见 [API-INTERACTION](API-INTERACTION.md)，交付运维见 [HANDOFF](HANDOFF.md)。
 
 ```mermaid
 flowchart LR
-    P[用户提示词] --> D[共享 GameBrief 与事件合同]
-    D --> G[游戏生成任务]
-    D --> A[音频导演与作曲任务]
-    A --> C[宿主自动确认合同并选定交付项]
-    C --> R[按需渲染与音频包交付]
-    G --> J[按版本合并与绑定验收]
-    R --> J
-    J --> O[可玩的游戏与完整声音]
+  P[用户提示词] --> B[冻结 GameBrief 与事件合同]
+  B --> G[游戏代码生成]
+  B --> A[声音方案]
+  A --> C[宿主校验并选择 items]
+  C --> R[后台渲染与编码]
+  G --> J[按设计身份汇合]
+  R --> M[不可变媒体包]
+  M --> J
+  J --> L[本地播放与游戏事件]
 ```
 
-游戏生成器和音频生成器不能各自猜测事件名称或世界设定。两者读取同一份有版本的
-GameBrief；场景状态、动作含义和声音触发合同先形成，再并行产出游戏代码与声音。
-AI 可以扩展事件提案，只有通过校验的最终合同才进入编译。
+游戏与声音读取同一设计，游戏先完成可先无声游玩。游戏模型负责真实行为与事件，音频服务负责受支持的创作/渲染/编码/包，宿主负责授权、版本、装配与手势。当前仓库小游戏是预编写样本，没有通用游戏生成模型，也未改外部游戏项目。
 
-声音服务与宿主按两阶段合作：先规划并返回候选声音及可交付项，宿主自动核对共享
-身份、required 事件与预算，选定实际需要的 items 后才触发渲染和交付。确认是程序
-校验，不要求用户逐个批准音效。未来协议为 `POST /v1/audio/plans` 后提交
-`POST /v1/audio/jobs`，再查询 job 与不可变 package manifest；这些端点目前未实现。
+## 共享身份
 
-交付完成后，游戏运行时使用本地 adapter 播放已获得的资源、分轨与声音事件，不把
-每次游戏操作送去实时生成。当前原型在浏览器完成渲染，已有 plan API 和宿主桥；
-按 `acceptedItems` 选择的后台媒体交付仍是后续能力。
+GameBrief 至少包含 schemaVersion:1、非空 projectId/prompt、正整数 revision，原始需求与玩法限制保留在共享 JSON。briefRevision 是兼容输入。影响内容的修改建立新 revision。
 
-GameBrief 示例：
+GameEventContract 含 schemaVersion:1、正整数 version、唯一 sceneStates 和 events。每事件有稳定 id（如 item.collect）、受支持 cue 或可选 null、required、可选 maxRatePerSecond。required 必须有 cue；频率执行为相邻最小间隔，不能每帧碰撞都触发。
 
-```json
-{
-  "schemaVersion": 1,
-  "projectId": "island-fishing-demo",
-  "briefRevision": 3,
-  "prompt": "温暖的海岛钓鱼游戏，有轻柔海浪和清楚的咬钩反馈",
-  "world": { "theme": "sunlit-island", "dimension": "3d", "mood": ["warm", "relaxed"] },
-  "gameplay": { "loop": ["explore", "cast", "wait", "reel", "reward"], "pace": "gentle" },
-  "sceneStates": ["menu", "exploration", "fishing", "reward"],
-  "audioIntent": {
-    "style": "warm-mallet-acoustic",
-    "bpmRange": [84, 100],
-    "musicStructure": "theme-with-variation",
-    "vocal": false,
-    "dynamicLayers": 3
-  },
-  "eventContractVersion": 1
-}
-```
+normalizeGameBrief/normalizeEventContract 归一文本和字段，事件按 ID、场景按值排序。canonicalJson 对对象键排序、保留数组顺序，只接受有限 JSON。createGameRevisionIdentity 生成 `projectId/revision/briefHash/contractVersion/contractHash`；两个 hash 覆盖完整归一内容。validateGameAudioJoin 逐项检查，迟到旧任务不能覆盖新 revision，仅比较版本号或 prompt 不够。
 
-保存规范化 JSON 的 `briefHash`，所有任务返回同一个 hash、revision 和 contractVersion。
-用户改动玩法或音乐要求后创建新 revision；旧任务可以取消，迟到结果不能覆盖新版本。
+## 三种产物
 
-## GameEventContract
+| 类型 | 来源 | 内容 |
+|---|---|---|
+| game-audio-plan | createAudioPlan / 旧 api/audio/plan | 身份、音频 brief、谱面、scoreHash、绑定，未渲染 |
+| audio-delivery-plan | POST v1/audio/plans | identity/sourcePlan/items/delivery/versions/estimates 与内容摘要，等待确认 |
+| audio-media-package | 后台 job | 实际媒体、事件/音乐映射、trim/loop、来源、质量、实测预算与 packageId |
 
-每个游戏动作使用稳定的语义 ID，并给出触发条件、负载及频率，而不是让游戏代码
-直接拼接音频文件路径。音频系统将语义 ID 映射为经过验证的声音。
+createAudioPackage(plan) 仍是旧合同导出，files:[]、mediaStatus:not-rendered，不是后台交付器。sourcePlan.audioSpec 保留旧引擎 44.1 kHz 和 stereo-pan-only 的描述；实际交付以 item/文件的 **48 kHz** 与新播放器能力为准。
 
-```json
-{
-  "schemaVersion": 1,
-  "events": [
-    {
-      "id": "fishing.cast",
-      "trigger": "鱼竿成功抛出时一次",
-      "payload": { "strength": "number:0..1", "position": "vec3?" },
-      "spatial": true,
-      "maxRatePerSecond": 3,
-      "priority": 50,
-      "required": true
-    },
-    {
-      "id": "fishing.bite",
-      "trigger": "进入玩家可响应的咬钩窗口时一次",
-      "payload": { "urgency": "number:0..1" },
-      "spatial": false,
-      "maxRatePerSecond": 2,
-      "priority": 90,
-      "required": true
-    },
-    {
-      "id": "item.collect",
-      "trigger": "真实收获结算成功时一次",
-      "payload": { "strength": "number:0..1", "rarity": "enum:common|rare|epic" },
-      "spatial": false,
-      "maxRatePerSecond": 6,
-      "priority": 70,
-      "required": true
-    }
-  ],
-  "sceneStates": ["menu", "exploration", "fishing", "reward"],
-  "intensity": { "range": [0, 1], "meaning": "当前玩法张力，不是总音量" }
-}
-```
+## 创作与算法边界
 
-单位也需要约定：三维位置采用游戏世界的米或明确的换算比例，时间采用秒，乐谱使用
-拍单位，音量保存为 dB。UI 和关键反馈通常不随三维距离变小；世界声源才参与衰减。
-数据范围需实际 schema 校验，示例中的字符串类型描述不是可执行验证器。
+默认 local 只有 cozy/neon/ruins，关键词选配置，seed 决定乐句。默认作曲器为 16 小节、4/4、A8+B4+A′4 的六声部作品。同 plan 的音乐 slots 共享同一主题，不是不同场景的独立曲。海岛 hybrid 使用准备好的 VSCO2 木琴，其余主要合成；hybrid 不表示自动写实配器。
 
-## 音频任务输入与 AI 的职责
+支持 cue：ui、collect、cast、splash、footstep、footstepWood、hit、laser、charge、explosion、victory、failure。声音素材/配方与玩法事件分开，绑定由共享合同唯一决定，不采用导演私自猜出的别名。
 
-建议服务入口接收 GameBrief、GameEventContract、音源能力清单和资源预算，而不是
-只接收一句风格提示词。模型负责提出音乐主题、和声、段落、配器与声音设计意图。
-受控编译器负责音域、拍长、声部数、曲式、已授权音色 ID 与输出预算。
+已实现两种算法替换入口：
 
-模型输出的结构可包含：
+- `GAME_AUDIO_DIRECTOR_MODULE` 指向运维信任的本地模块，导出 version、directPrompt(prompt,{seed})，可选 composeScore(audioBrief,{gameBrief,eventContract})。模块可调用自己的模型，但输出数据；例见 [algorithm-plugin.mjs](../examples/algorithm-plugin.mjs)。
+- `GAME_AUDIO_DIRECTOR_PROVIDER=openai-compatible` 调固定 Chat Completions URL，JSON schema 只接受 style/mode/bpm/rootMidi；保持 seed、16 小节、4/4。本地作曲器和音源仍负责生成声音，这不是端到端音乐模型。本轮未验证收费供应商或其听感。
 
-- `AudioSpec`：风格、调性、BPM、乐器、段落和场景转换策略。
-- `MusicScore`：以拍为单位的音符、力度、时值、声部、循环和 cue 边界。
-- `SfxSpec`：事件、瞬态/主体/尾音组合、变体、优先级与并发规则。
-- `EventBindings`：合同事件到声音 ID、音乐状态和短 cue 的映射。
+导演校验三风格、major/minor、60–180 BPM、主音 MIDI 36–84、无符号 seed。注入 score 校验 1–16 track、至多 10,000 音符、支持的乐器/角色、音域/时值/力度/增益与 timing。一切 HTTP 输入不能指定模块、代码、下载 URL 或任意 DSP。最终作品上限 65 秒；调用方另设更小 maxDurationSeconds 时，超过该上限的完整作品会被拒绝，不会自动剪辑。
 
-不让模型提供任意可执行 DSP 代码、任意 npm 包名或外部样本 URL。新增风格和乐器
-通过平台能力清单扩展。模型输出失败时返回结构化错误，保留可编辑草稿与错误证据。
+versions.algorithm 记录本地算法版本、或模块主文件 SHA/version、或远程 model/endpointHash，不保存密钥。模块主文件 hash 不递归覆盖所有依赖，部署者应固定它们。模型接通不代表音质通过。
 
-当前的 `directPrompt` 是上述音频导演位置的有限本地模拟；`composeScore` 是确定性
-编排器。将来可替换导演层，但不能仅把本地规则函数改名为 AI 服务便宣称完成接入。
+## 选择、预算与任务
 
-## 输出 AudioPackage
+确认原样回传 planId/planDigest/identity/delivery，加 acceptedItems；全部 required 必选、optional 可省略。更改编码、seed、预算、分轨或设计都新建 plan。计划 required 估计超预算提前拒绝，可选候选不会强制消耗 required-only 预算；实际完整选择仍执行实测预算。
 
-独立音频包应该同时支持试听、动态运行和后续编辑。只给一个 `mix.ogg` 无法保留
-场景动态层、事件含义、谱面或可重现信息。
+默认 48 kHz Opus/Ogg：BGM stereo 64 kbps VBR（high 96），SFX mono 48（compact-approved 32，听审由调用方负责）。AAC-LC/M4A 回退音乐 96、音效 64。每 item 只交付一种格式，mix 或三个 stems 按需选择。默认预算传输 12 MiB/PCM 64 MiB，上限 64/256 MiB；最多 32 items、64 events、4 music slots、SFX 1–3 变体（部分 cue 只支持 1）。
 
-以下是未来媒体包的可选目录布局，实际媒体打包尚未实现。只交付宿主确认选中的
-items；mix、stems、cues 不要求全部生成或打包。
+实际字节含编码和 provenance，PCM 按实际解码 Float32 帧计；浏览器还检查自身解码预算。约 970 KB 的精选原料不包含生成音乐 PCM；降低码率不会缩小解码内存。stems 和多作品常驻需单独预算。
 
-```text
-audio-package/
-  manifest.json
-  game-brief.json
-  event-contract.json
-  audio-spec.json
-  score.json
-  event-bindings.json
-  music/
-    preview.ogg
-    stems/core.ogg
-    stems/texture.ogg
-    stems/rhythm.ogg
-    cues/victory.ogg
-    cues/failure.ogg
-  sfx/
-    cast-01.ogg
-    bite-01.ogg
-    collect-01.ogg
-  runtime/
-    version.json
-  provenance/
-    assets.json
-    LICENSES.txt
-  quality/
-    report.json
-```
+任务有逐组件状态、requiredReady/allSelectedReady、selectionDigest 和错误。短 SFX 优先，部分就绪可发不可变包，新组件形成新 packageId。终态为 ready/partial-ready/failed/cancelled；失败可重试组件在新任务里重做，已完成组件复用。音频失败不重生成游戏。
 
-混合试听不一定等同运行时实际动态混音。manifest 应明确 stem 的增益、循环起止点、
-样本率、同步方式与动态规则，避免把所有分轨直接相加而改变混音。
-后续媒体交付默认使用 **Opus + Ogg 容器（`.ogg`）**，交付采样率为 **48 kHz**，
-MIME 为 `audio/ogg; codecs=opus`。BGM 默认立体声 64 kbps VBR，复杂配器或高质量档
-为 96 kbps VBR；SFX 默认单声道 48 kbps VBR，32 kbps VBR 仅作为需试听批准的紧凑档。
-宿主根据实际播放/解码能力选择默认格式或 AAC-LC/M4A 回退，每个交付项只交付一种
-选定格式，不默认同时打包两套。回退时记录实际 MIME、codec、采样率与编码器版本。
+本地文件存储 plan/job/package，单进程锁禁止同 dataDir 多服务；重启恢复未完成工作并校验缓存。默认并发 1，HTTP 支持 1–4。任务幂等按 owner/project 范围，缓存记录谱面/配方、真实素材、引擎/worker/Tone、编码器指纹。确认后受保护源码变更会拒绝旧 plan。
 
-WAV 保留作研究或母版，不作为正式媒体交付默认；现有 WAV/MP3 研究产物与原来的
-44.1 kHz 实测记录保持不变。压缩后文件变小，解码为 PCM 后的内存仍需单独计算。
-格式选择与协商详见 [默认媒体输出格式](API-INTERACTION.md#默认媒体输出格式)。
+## 包与播放
 
-manifest 的关键字段：
+manifest 包含设计/plan/selection 身份、accepted/delivered items、文件映射、实测预算、来源与质量。packageId 是除自身外规范 JSON 的 SHA-256，各文件另有长度/hash。包只含相对路径，WAV Float32 母版留服务缓存；运行不需要创作音源库、Tone 或模型。
 
-```json
-{
-  "schemaVersion": 1,
-  "packageId": "content-addressed-id",
-  "projectId": "island-fishing-demo",
-  "briefRevision": 3,
-  "briefHash": "sha256-of-canonical-brief",
-  "eventContractVersion": 1,
-  "compilerVersion": "0.1.0",
-  "soundBankVersion": "0.1.0",
-  "seed": 1407,
-  "sampleRate": 48000,
-  "music": { "bpm": 92, "meter": 4, "bars": 16, "stems": [] },
-  "files": [{ "path": "music/preview.ogg", "mimeType": "audio/ogg; codecs=opus", "container": "ogg", "codec": "opus", "sampleRate": 48000, "channels": 2, "bitrateKbps": 64, "bitrateMode": "vbr", "sha256": "file-digest", "bytes": 0 }],
-  "qualityStatus": "technical-pass-listening-pending"
-}
-```
+SDK 校验后解码，player 从本地 AudioBuffer 播放。手势 unlock、同步 stems、变体轮转、强度、声部上限、暂停恢复和静音已实现。setScene 只记录元数据，切曲显式 music.play。运行中的动作不发生成 API。
 
-路径、摘要和 bytes 必须由打包器依据真实产物生成，不能从模型输出直接信任。
-上例是尚未实现的媒体 manifest 草案，`bytes: 0` 和摘要为占位，不能当作现有产物；
-`music.stems` 也仅在选中分轨交付时列出实际提供的分轨。
-音色内容许可与代码依赖许可分别保存。相同谱面、音色、编译器和采样率可命中缓存；
-跨浏览器 DSP 输出不保证逐位相同，因此缓存也要记录渲染配置。
+旧 opaque iframe 桥仅传 emit/setScene/setIntensity，旧 adapter 只支持 strength/pan、拒绝 position。新 player 可给声明 spatial.enabled 的 mono SFX 使用 PannerNode HRTF/距离衰减，宿主更新 listener。没有遮挡、混响区域、连续声源移动或 Three.js 自动场景同步，也未完成完整 3D 生成游戏听审。旧桥接新包需显式宿主适配，不能把 bundle 直接当旧 Tone runtime。
 
-## 运行时与游戏侧连接
-
-```js
-await audio.unlock(); // 真实用户手势中启动
-audio.setScene('exploration');
-audio.setIntensity(tension);
-audio.playEvent('fishing.cast', { strength: castPower, position: rodPosition });
-```
-
-完整接口还需暂停、恢复、静音、停止和销毁。音乐切换在允许的拍/小节边界发生；
-直接操作音效不能继承音乐的长 lookahead。音效优先级、voice budget 与事件冷却
-由统一运行时控制。浏览器受限、样本缺失或音频初始化失败时应输出可观察的错误状态，
-不能让游戏画面崩溃，也不能将静音当成验收成功。
-
-## 两条任务如何汇合
-
-游戏任务与音频任务各自报告 `queued/running/ready/failed/cancelled`，以项目和 brief
-版本归档。可播放预览先保存草稿，不必等待所有高质量音频完成；最终完整交付必须确认：
-
-1. 游戏运行的是当前 GameBrief revision，声音包也绑定当前 revision。
-2. 所有 required 事件在真实玩法中触发，且音频运行时接受并产生有效输出。
-3. 场景切换、重复事件、胜负、暂停、恢复和重开不会重复创建未释放音频节点。
-4. 音频技术验收通过；人类试听状态独立保存，不能用“无削波”推断“好听”。
-
-声音包单独修改时可以复用游戏产物；玩法事件合同变化时，则重新校验绑定并使旧验收
-失效。资源或音频任务失败应保留明确状态，不能在界面显示“全部完成”。
-
-## 当前研究原型与未来能力
-
-| 能力 | 当前状态 |
-|---|---|
-| 三种游戏主题的结构化 brief / score | 已有，本地规则与 seeded composer |
-| Tone / Web Audio 离线渲染与可试听 PCM | 已有，性能以实际报告为准 |
-| 混合采样与程序合成对照 | 原型支持，音色范围有限 |
-| 分轨、强度与通用音效事件 | 原型支持 |
-| 固定等距场景中的声音触发 | 已有，是演示沙盘 |
-| 共享设计/事件校验、plan API 与游戏 adapter | 已有，本地规则规划，不是通用 AI 导演 |
-| opaque iframe 与宿主事件桥 | 已有，父宿主播放，小游戏不加载声音资源 |
-| 游戏先可玩、音频随后准备的宿主演示 | 已有，游戏为预先编写的接入样本 |
-| 任意提示词的 AI 音频导演 | 未接入 |
-| 同步生成任意完整游戏 | 未实现 |
-| 上述完整 AudioPackage 打包器/API | 设计草案，未实现 |
-| 通用高质量或商业成品音质认证 | 未获得，仍需实际试听 |
-
-下一步宜将已实现的 plan API/adapter/事件桥接到一条真实游戏生成任务，再实现完整
-AudioPackage 打包器和独立导出，逐步接入 AI 导演。现有网站只是可能的接入方，
-本轮没有修改它们。
+quality.technical 表示渲染/解码，binding 当前只验证合同，listening 为 not-evaluated；它们不等于实际玩法和真人音质通过。exportAudioPackageZip 可输出媒体、manifest、许可、两份 runtime 与本地试听页，静态 HTTP 下脱离生成服务。它是声音包，未自动合并外部整款游戏或输出单文件 HTML；游戏装配、验收和发布由生成器负责。

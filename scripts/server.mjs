@@ -3,12 +3,15 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { handleBlindRequest } from './blind-api.mjs';
+import { createAudioApi } from '../server/audio-api.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const port=Number(process.env.GAME_AUDIO_PORT||4178);
-const mime={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.wav':'audio/wav','.ogg':'audio/ogg','.mp3':'audio/mpeg','.png':'image/png','.md':'text/plain; charset=utf-8','.txt':'text/plain; charset=utf-8'};
+const host=process.env.GAME_AUDIO_HOST||'127.0.0.1';
+const mime={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.wav':'audio/wav','.ogg':'audio/ogg','.m4a':'audio/mp4','.mp3':'audio/mpeg','.png':'image/png','.md':'text/plain; charset=utf-8','.txt':'text/plain; charset=utf-8'};
 const publicRoots=new Set(['src','assets','vendor','docs','artifacts']);
-const publicFiles=new Set(['index.html','blind.html','listen.html','pipeline.html','README.md','REPORT.md','THIRD_PARTY_NOTICES.md']);
+const publicFiles=new Set(['index.html','blind.html','listen.html','pipeline.html','delivery.html','README.md','REPORT.md','THIRD_PARTY_NOTICES.md']);
+const api=await createAudioApi({root,dataDir:path.resolve(process.env.GAME_AUDIO_DATA_DIR||path.join(root,'.data/audio-service'))});
 let soundBankPromise;
 function soundBank(){
  if(!soundBankPromise)soundBankPromise=(async()=>{
@@ -45,6 +48,8 @@ async function saveArtifact(req,res,url){
 const server=http.createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://127.0.0.1');
+  if(await api.handle(req,res,url))return;
+  if(url.pathname.startsWith('/api/')&&!['127.0.0.1','localhost','::1'].includes(host)){reply(res,403,'Research API is available only on a loopback listener');return;}
   if(url.pathname==='/api/audio/capabilities'&&req.method==='GET'){
    reply(res,200,JSON.stringify({schemaVersion:1,director:'local-rule-based-research-prototype',profiles:['cozy','neon','ruins'],rendering:'browser-web-audio-offline',eventBridge:'message-channel-v1'}),{'Content-Type':'application/json'});return;
   }
@@ -83,4 +88,7 @@ const server=http.createServer(async(req,res)=>{
   const data=await fs.readFile(file);reply(res,range?206:200,range?data.subarray(range.start,range.end+1):data,headers);
  }catch(error){if(!res.headersSent)reply(res,500,'Local server request failed');else res.end();console.error('[server]',error.message);}
 });
-server.listen(port,'127.0.0.1',()=>console.log(`GameAudioLab http://127.0.0.1:${server.address().port}`));
+server.listen(port,host,()=>console.log(`GameAudioLab http://${host}:${server.address().port}`));
+let shuttingDown=false;
+async function shutdown(){if(shuttingDown)return;shuttingDown=true;server.close();await api.close();process.exitCode=0;}
+process.on('SIGINT',()=>void shutdown());process.on('SIGTERM',()=>void shutdown());

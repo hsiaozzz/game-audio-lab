@@ -1,0 +1,29 @@
+{
+  "gameBrief": {
+    "schemaVersion": 1,
+    "projectId": "service-handoff-demo",
+    "revision": 1,
+    "prompt": "温暖海岛收集游戏，轻柔木琴背景音乐，拾取物品反馈清楚"
+  },
+  "eventContract": {
+    "schemaVersion": 1,
+    "version": 1,
+    "sceneStates": ["menu", "exploration"],
+    "events": [
+      { "id": "item.collect", "cue": "collect", "required": true, "maxRatePerSecond": 6 },
+      { "id": "player.hit", "cue": "hit", "required": false, "maxRatePerSecond": 3 }
+    ]
+  },
+  "options": { "seed": 1701 },
+  "audioRequests": [
+    { "id": "sfx.item.collect", "kind": "sfx", "eventId": "item.collect", "required": true, "variants": 2 },
+    { "id": "bgm.exploration", "kind": "music", "scene": "exploration", "required": true, "loop": true, "playback": "mix", "maxDurationSeconds": 50 }
+  ],
+  "delivery": {
+    "profile": "compact-opus-v1",
+    "acceptedFormats": ["opus-ogg", "aac-lc-m4a"],
+    "selection": "one-format-per-item",
+    "maxTransferBytes": 12582912,
+    "maxDecodedPcmBytes": 67108864
+  }
+}

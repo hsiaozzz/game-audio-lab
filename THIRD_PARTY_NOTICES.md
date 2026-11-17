@@ -13,8 +13,11 @@ license has been selected.
 - Integrity and bundle SHA-256: `vendor/provenance.json`.
 
 The vendored distribution includes the notices supplied by its publisher.
-Optional Playwright tooling is installed separately through npm; its own
-package licenses and browser notices accompany that installation.
+The backend renderer uses Playwright 1.63.0 (Apache-2.0), installed through npm,
+and its separately installed Chromium runtime. Their licenses and browser
+notices accompany those installations. They are not part of exported game
+playback packages. FFmpeg/ffprobe are operator-installed system dependencies;
+their build-specific licenses and notices must accompany deployment copies.
 
 ## Kenney sound effects
 

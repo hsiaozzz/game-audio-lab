@@ -38,8 +38,8 @@ for (const variant of ['synth', 'reference']) {
 }
 assert.equal(comparison.spacingSeconds, 1.8);
 // Catch missing page assets and local module imports in a clone or an extracted ZIP.
-const sitePages = ['index.html', 'listen.html', 'blind.html', 'pipeline.html'];
-const requiredFiles = new Set(['src/game-audio-pipeline.mjs', 'src/game-audio-bridge.mjs']);
+const sitePages = ['index.html', 'listen.html', 'blind.html', 'pipeline.html', 'delivery.html'];
+const requiredFiles = new Set(['src/game-audio-pipeline.mjs', 'src/game-audio-bridge.mjs', 'src/audio-service-client.mjs', 'src/audio-package-player.mjs', 'src/audio-package-export.mjs', 'examples/audio-service-request.json', 'examples/algorithm-plugin.mjs', 'docs/openapi.json', 'docs/audio-service-types.d.ts', 'docs/HANDOFF.md']);
 const localReference = (reference, from) => {
   const base = new URL(from, 'https://distribution.invalid/');
   const url = new URL(reference, base);
@@ -60,7 +60,10 @@ for (const file of requiredFiles) {
   const contents = read(file);
   assert.ok(contents.length, `Empty distribution resource: ${file}`);
   if (/\.m?js$/.test(file)) {
-    for (const match of contents.toString('utf8').matchAll(/(?:\bfrom\s*|\bimport\s*)['"](\.{1,2}\/[^'"]+)['"]/g)) {
+    // Generated HTML contains imports relative to its exported ZIP, not this module.
+    // The ZIP paths and runtime imports have their own CRC/hash and browser checks.
+    const moduleText=contents.toString('utf8').replace(/`(?:\\[\s\S]|[^`])*`/g,'');
+    for (const match of moduleText.matchAll(/(?:\bfrom\s*|\bimport\s*)['"](\.{1,2}\/[^'"]+)['"]/g)) {
       const dependency = localReference(match[1], file);
       if (dependency) requiredFiles.add(dependency);
     }
